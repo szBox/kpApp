@@ -1,0 +1,354 @@
+<template>
+	<div class="user-shoucang-info timu-bg">
+		<header class="header">
+			<div @click="back()"><img src="/static/images/nav-icon-goback.png" alt="" /></div>
+			<h1>收藏详情</h1>
+		</header>
+		<div class="my-content">
+			<cube-scroll  ref="scroll"  @pulling-down="onPullingDown" @pulling-up="onPullingUp" :options="options">
+				<ul class="paper-box">
+					<li v-for="(item,index) in list">
+						<h5 class="paper-title">
+							{{(index+1 < 10 ? '0' + (index+1) : index+1)}}.
+							<span style="color: #58B5F9;">
+								({{item.answerContent.split(',').length>1?'多选题':'单选题'}})
+							</span>
+							
+							{{item.qname}}	
+							<span style="color: #FF7D67;">
+								({{item.singleSore}}分)
+							</span>
+						</h5>
+						<div class="paper-cover" v-if="item.qimageUrl">
+							<img :src="(item.qimageUrl.indexOf('?uploadId')?item.qimageUrl.split('?uploadId')[0]:item.qimageUrl)" alt="" />
+						</div>
+						<ul class="ul-abcd">
+							<li v-for='(option,index) in item.chioces' :class="{
+									'optionActive': item.answerContent.indexOf(option.id) != -1}">
+								<span class='option-A'>
+									{{index+1 | optionFilter}} :
+								</span>
+								{{option.value}}
+							</li>
+							
+							
+						</ul>
+						
+						<div class="answer-hh">
+							你的答案是 : 
+							<span style="color: #FF7D67;">{{item.answerContent | answerFn(item.chioces)}}</span>
+							<span>{{(item.isright=='Y'?'回答正确':'回答错误')}}</span>
+							<p @click="showBtn(item.id)">
+								<i>
+									收藏
+								</i>
+								<img  src="/static/images/content-btn-selected-sc.png" alt="" />
+							</p>
+							
+						</div>
+					</li>
+				</ul>
+		  	</cube-scroll>
+		</div>
+		
+		
+	</div>
+</template>
+
+<script>
+	
+	import my from '@/network/my/my.js'
+	export default{
+		data() {
+			return {
+				page:1,
+				pages:'',
+				size:3,
+				bookId:'',
+				list:[],
+				options: {
+					scrollbar: true,
+					startY:0,
+					pullDownRefresh: {
+						threshold: 90,
+						stop :40,
+						txt: ' '
+					},
+					pullUpLoad:{
+						
+						txt: {
+							more:' ',
+							noMore:'没有更多数据了',
+						}
+					}
+				}
+			}
+		},
+		
+		mounted() {
+			this.getList();
+		},
+		filters:{
+			optionFilter(val){
+				if(val==1){
+					return 'A'
+				}
+				if(val==2){
+					return 'B'
+				}
+				if(val==3){
+					return 'C'
+				}
+				if(val==4){
+					return 'D'
+				}
+				if(val==5){
+					return 'E'
+				}
+			},
+			answerFn(val,ids){
+				var abcd=''
+				var abcdArr =['A','B','C','D','E'];
+				var answerData = val.split(',');
+				for(var i=0; i<ids.length; i++){
+					for(var j=0; j<answerData.length; j++){
+						if(ids[i].id==answerData[j]){
+							abcd += abcdArr[ids.indexOf(ids[i])]
+						}
+					}
+				}
+				return abcd
+
+			}	
+
+			
+		},
+		methods: {
+			refrensh() {
+				this.$nextTick(() => {
+					this.$refs.scroll.refresh();
+				});
+			},
+			onPullingUp() {
+				setTimeout(() => {
+					console.log(this.page,'---',this.pages)
+					this.page ++;
+					this.getPage();
+					this.$refs.scroll.forceUpdate();
+//					this.$refs.scroll.finishPullUp();
+					this.refrensh();
+					
+					
+			    }, 1500);
+				
+			},
+			onPullingDown() {
+				this.page=1;
+				this.getList();
+				setTimeout(() => {
+					this.$refs.scroll.forceUpdate();
+					this.refrensh();
+			      	
+					
+			    }, 1500);
+			},
+			back() {
+				this.$router.go(-1);
+			},
+			showBtn(id) {
+//			  	shoucangTimuDel
+				console.log(id);
+		      this.$createDialog({
+		        type: 'confirm',
+		        icon: 'cubeic-alert',
+		        title: '是否取消收藏该题目',
+//		        content: '',
+		        confirmBtn: {
+		          text: '确定',
+		          active: true,
+		          disabled: false,
+		          href: 'javascript:;'
+		        },
+		        cancelBtn: {
+		          text: '点错了',
+		          active: false,
+		          disabled: false,
+		          href: 'javascript:;'
+		        },
+		        onConfirm: () => {
+		          this.del(id);
+		          this.$createToast({
+		            type: 'correct',
+		            time: 1000,
+		            txt: '操作成功'
+		          }).show()
+		        },
+		        onCancel: () => {
+		       
+		        }
+		      }).show()
+		    },
+			getList (){
+				 let params ={
+					bookId: this.$route.params.id,
+					current: this.page,
+					size: this.size
+				}
+				my.shoucangTimu(params).then(res=>{
+					console.log('收藏题目详情',res);
+					if(res.data.code==0){
+						this.pages=res.data.data.pages;
+						this.list=res.data.data.records;
+						
+					}
+					
+				})
+			},
+			getPage (){
+				 let params ={
+					bookId: this.$route.params.id,
+					current: this.page,
+					size: this.size
+				}
+				my.shoucangTimu(params).then(res=>{
+					console.log('加载更多',res);
+					if(res.data.code==0){
+						this.pages=res.data.data.pages;
+						for(let i = 0; i < res.data.data.records.length; i++) {
+							this.list.push(res.data.data.records[i]);
+							
+						}
+					}
+					
+				})
+			},
+			
+			del(id){
+				my.shoucangTimuDel(id).then(res=>{
+					console.log('取消题目详情',res);
+					if(res.data.code==0){
+						this.getInit();
+						
+					}
+					
+				})
+			}
+	
+			
+			
+			
+		}
+
+	}
+</script>
+
+<style scoped lang="less">
+	.user-shoucang-info {
+		height: 100%;
+		&::before{
+			content: ' ';
+			position: fixed;
+			z-index: -1;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			background: url(/static/images/bgg1.jpg);
+			background-size: cover;
+		}
+		.header{
+			background: transparent;
+			h1{
+				color: #996809;
+			}
+		}
+		.my-content{
+			
+			padding-top: 0;
+			margin-top: 50px;
+			padding-bottom: 0;
+			height: calc(100% - 20px);
+			overflow: auto;
+		}
+		background: url(/static/images/bgg1.jpg);
+		background-size: cover;
+		
+		
+		ul.paper-box{
+			padding:10px 15px;
+			>li{
+				padding: 15px 25px;
+				margin-bottom: 15px;
+				border: 2px solid #E7C78F;
+				border-radius: 10px;
+			}
+		
+			.paper-title{
+				/*padding: 0 15px;*/
+				margin: 5px 0 15px;
+				color: #BA7c01;
+				font-size: 16px;
+			}
+			ul.ul-abcd{
+				/*padding: 0 15px;*/
+				
+				overflow: hidden;
+				li{
+					/*background: #fff;*/
+					margin: 8px 0;
+					margin-bottom: 20px;
+					padding:5px 15px;
+					/*border-radius: 6px;*/
+					/*border: 1px solid #FEA504;*/
+					background: url(/static/images/content-choice-box-wxz.png) no-repeat;
+					background-size: 100% 100%;
+					color: #FEA504;
+					font-size: 16px;
+				}
+				
+				/*li:nth-child(3n){
+					clear: left;
+				}*/
+			}
+			div.answer-hh{
+				color: #7C644A;
+				font-size: 16px;
+				line-height: 20px;
+				>p{
+					float: right;
+					>img{
+						float: right;
+						width: 20px;
+						vertical-align: middle;
+						margin-top: -2px;
+						margin-right: 5px;
+					}
+					>i{
+						float: right;
+					}
+				}
+				
+			}
+			.ul-abcd li.optionActive{
+				color: #fff;
+				background: url(/static/images/content-choice-box-cwda.png) no-repeat;
+				background-size: 100% 100%;
+			}
+		}
+		.option-A{
+			display: inline-block;
+			width: 25px;
+			height: 25px;
+			line-height: 25px;
+			text-align: center;
+		}
+		
+		
+	}
+	
+	
+	
+	
+	
+	
+</style>

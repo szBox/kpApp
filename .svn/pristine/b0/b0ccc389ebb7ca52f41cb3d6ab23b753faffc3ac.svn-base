@@ -1,0 +1,75 @@
+.my-checkbox{
+    .cube-checkbox-label{
+        color: white;
+        font-size: 12px;
+    }
+}
+
+//elm的走马灯
+.el-carousel__indicators.el-carousel__indicators--outside,
+.el-carousel__arrow el-carousel__arrow--left,
+.el-carousel__arrow el-carousel__arrow--right{
+    display: none !important;
+}
+.el-carousel__container{
+    height:140px !important;
+//  overflow: auto !important;
+    >div.el-carousel__item{
+        -webkit-box-shadow: 2px 1px 1px #E3E3E3;
+        box-shadow: 2px 1px 1px #E3E3E3;
+        border-radius: 4px 16px 16px 4px;
+      
+        
+        
+    }
+}
+
+
+.login-btn{
+    background: linear-gradient(to right,#f8ce4c,#f3971f) !important;
+    border-radius: 30px !important;
+    padding: 12px 30px !important;
+    &::after{
+        border: none !important;
+    }
+}
+
+.foot-action-btn{
+    background: #5250ae !important;
+    width: 68px !important;
+    height: 26px !important;
+    line-height: 26px !important;
+    padding: 0 10px !important;
+    text-align: center !important;
+    border-radius: 6px !important;
+    &.disabled{
+        opacity: .4 !important;
+    }
+}
+//.cube-popup-center .cube-popup-content,
+.cube-popup-right .cube-popup-content,
+.cube-popup-left .cube-popup-content{
+    top:-10% !important;
+    padding: 0.2rem 0.4rem !important;
+    color: #fff !important;
+}
+
+//滴滴scroll 滚动条
+.bscroll-vertical-scrollbar{
+    display: none;
+}
+.my-navbar{
+   .cube-tab{
+        div{
+            font-size: 17px;
+            padding: 6px 0;
+        } 
+    } 
+}
+//.my-scroll{
+//      margin-top: 50px;
+//      height: calc(100% - 100px);
+//      .cube-scroll-content,.cube-scroll-list-wrapper{
+//          height: 100%;
+//      }
+//  }

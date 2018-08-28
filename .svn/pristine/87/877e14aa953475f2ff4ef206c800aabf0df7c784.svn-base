@@ -1,0 +1,144 @@
+<template>
+  <div class="page">
+    
+    <!--<transition name="fade">-->
+      <keep-alive>
+        <router-view></router-view>
+      </keep-alive>
+    <!--</transition>-->
+    <div class="nav-footer">
+      <footer>
+        <router-link replace v-for='(item, index) in navList' :to='item.path' :key='index'
+                     v-bind:class="{'active':activeRoute == item.path}">
+          <div :class="'tab-'+index"></div>
+ 
+        </router-link>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  data () {
+    return {
+      navList: [
+        {
+          'path': '/home',
+          'name': '阅读闯关'
+        },
+        {
+          'path': '/record',
+          'name': '答题记录'
+        },
+        {
+          'path': '/rank',
+          'name': '排行榜'
+        },
+        {
+          'path': '/books',
+          'name': '好书推荐'
+        },
+        {
+          'path': '/my',
+          'name': '我的'
+        }
+      ]
+    }
+  },
+  computed: {
+    activeRoute () {
+      return this.$route.path
+    }
+  },
+  methods: {
+
+  }
+}
+</script>
+
+<style scoped lang="less">
+.page{
+	background: #fff;
+}
+.nav-footer {
+    position: fixed;
+    left: 0px;
+    bottom: 0px;
+    width: 100%;
+    height:50px;
+    background: #fff;
+    display: block;
+    footer {
+    	box-shadow: 0 0 10px #E3E3E3;
+      font-size: 0;
+      /*border-top: 1px solid #E7E7E7;*/
+      /*border-bottom: 1px solid #F8F8F8;*/
+      /*.pt(10);*/
+      line-height: 1.2;
+      width: 100%;
+      height:50px;
+      display: flex;
+      a {
+        text-decoration: none;
+        color: #888F97;
+        -webkit-box-flex: 1;
+        -moz-box-flex: 1;
+        -webkit-flex: 1;
+        -ms-flex: 1;
+        flex: 1;
+        text-align: center;
+        box-sizing: border-box;
+        display: block;
+        padding-bottom: 10px;
+        font-size:12px;
+        .tab-0, .tab-1, .tab-2, .tab-3, .tab-4{
+          display: inline-block;
+          height:48px;
+          width:70px;
+         	/*width: 94%;
+    			height: 110%;*/
+          background-size: cover;
+        }
+        .tab-0 {
+          background-image: url("../assets/images/tab-btn-default-ydcg.png");
+        }
+        .tab-1 {
+          background-image: url("../assets/images/tab-btndefault-dtjl.png");
+        }
+        .tab-2 {
+          background-image: url("../assets/images/tab-btn-default-phb.png");
+        }
+        .tab-3 {
+          background-image: url("../assets/images/tab-btn-default-hstj.png");
+        }
+        .tab-4 {
+          background-image: url("../assets/images/tab-btn-defualt-wd.png");
+        }
+        &:hover {
+          text-decoration: none;
+        }
+        &.router-link-active.active {
+          .tab-0 {
+          	background-image: url("../assets/images/tab-btn-selected-ydcg.png");
+          }
+          .tab-1 {
+            background-image: url("../assets/images/tab-btn-selected-dtjl.png");
+          }
+          .tab-2 {
+            background-image: url("../assets/images/tab-btn-selected-phb.png");
+          }
+          .tab-3 {
+            background-image: url("../assets/images/tab-btn-selected-hstj.png");
+          }
+          .tab-4 {
+          	background-image: url("../assets/images/tab-btn-selected-wd.png");
+        	}
+        }
+      }
+      p {
+        margin: 0;
+      }
+    }
+  }
+</style>

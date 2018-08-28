@@ -1,0 +1,285 @@
+<template>
+    <div class="begin-challenge">
+			<div class="self-mask" :class="{active: isShow}" @click="isShow = false"></div>
+			<header class="header">
+				<div @click="$router.go(-1)"><img src="/static/images/nav-icon-goback.png" alt="" /></div>
+				<h1>倒计时{{tick}}</h1>
+			</header>
+			<div class="content">
+				<cube-scroll ref="scroll" :options="options" class="my-cube-scroll">
+					<cube-slide @change="slideChange" :initial-index="initIndex" :options="slideOptions" :autoPlay="false" :showDots="false" ref="slide" :data="currentGroup" class="my-cube-slide">
+						<cube-slide-item v-for="(item, index) in currentGroup" :key="index">
+							<div class="question">
+								<h1>{{(index+1 < 10 ? '0' + (index+1) : index+1)}}.<span class="type">（{{item.anstname}}）</span>{{item.name}}<span class="score">（{{item.questionsRandId}}分）</span></h1>
+								<ul class="answer-ul">
+									<li class="answer-li" @click.self="choose(item, answer)" v-for="(answer, index) in item.qclist" :key="answer.id">
+										{{index+1 | optionFilter}}：{{answer.value}}
+									</li>
+								</ul>
+							</div>
+						</cube-slide-item>
+					</cube-slide>
+				</cube-scroll>
+			</div>
+			<div class="foot" :class="{active: isShow}">
+				<div class="foot-header">
+					<div class="left">
+						<img src="/static/images/tab-icon-jj.png" alt="">
+						<span>交卷</span>
+					</div>
+					<div class="center">
+						总分：100分
+					</div>
+					<div class="right">
+						<span>{{currentIndex < 10 ? '0' + currentIndex : currentIndex}}</span><span style="color: #ECD5B5;">/{{currentGroup.length}}</span>
+						<img src="/static/images/tab-icon-ym.png" alt="" @click="showAll">
+					</div>
+				</div>
+				<div style="height: 250px;">
+					<cube-scroll ref="scrolls" :options="options">
+						<div class="foot-content">
+							<span @click="scrollTo(i)" v-for="i of currentGroup.length" :key="i" :class="{current: currentIndex == i}">
+								{{i}}
+							</span>
+						</div>
+					</cube-scroll>
+				</div>
+			</div>
+    </div>
+</template>
+<script>
+import home from '@/network/home/home.js';
+export default {
+    data() {
+			return {
+				slideOptions: {
+					stopPropagation: true
+				},
+				options: {
+					scrollbar: true
+				},
+				currentGroup: [],
+				data: {},
+				timer: null,
+				tick: '00:00:00',
+				chooseAnswer: [],
+				currentIndex: 1,
+				isShow: false,
+				initIndex: 1
+			}
+		},
+		methods: {
+			scrollTo(index) {
+				this.currentIndex = index;
+				this.$refs.slide.slide.goToPage(index-1);
+				// this.$refs.slide.scrollToElement(this.$refs.slide.$children[index])
+			},
+			showAll() {
+				this.isShow = !this.isShow;
+			},
+
+			slideChange(index) {
+				this.currentIndex = index + 1;
+			},
+			choose(item, answer) {
+				console.log(item)
+				console.log(answer)
+			},
+			init() {
+				let query = this.$route.query;
+				home.beginChallenge(query).then(res => {
+					this.data = res.data.data || {};
+					this.currentGroup = this.data.questionsList;
+					let time = (new Date()).getTime() + (this.data.answerTime * 60 * 1000);
+					this.timer = setInterval(() => {
+                        this.timeCountDown(time);
+					}, 1000);
+				})
+			},
+			//倒计时
+			timeCountDown(time) {
+				let [str, bool] = this.global.timerCountDown(time);
+				this.tick = str;
+				if(bool) {
+					clearInterval(this.timer);
+				}
+			}
+		},
+		created() {
+			this.init();
+		},
+		destroyed() {
+			clearInterval(this.timer);
+		},
+		filters:{
+			optionFilter(val){
+				if(val==1){
+					return 'A'
+				}
+				if(val==2){
+					return 'B'
+				}
+				if(val==3){
+					return 'C'
+				}
+				if(val==4){
+					return 'D'
+				}
+				if(val==5){
+					return 'E'
+				}
+			}
+		}
+}
+</script>
+<style lang="less" scoped>
+    .begin-challenge{
+		font-size: 16px;
+		height: 100%;
+		.self-mask{
+			&.active{
+				z-index: 500;
+				opacity: .4;
+			}
+			transition: opacity 1s;
+			position: fixed;
+			top: 0;
+			left: 0;
+			height: 100%;
+			width: 100%;
+			z-index: -100;
+			background: black;
+			opacity: 0;
+		}
+		&::before{
+			content: ' ';
+			position: fixed;
+			z-index: -1;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			background: url(/static/images/bgg1.jpg);
+			background-size: cover;
+		}
+		.header{
+			z-index: 111;
+			background: transparent;
+			h1{
+				color: #996809;
+			}
+		}
+		.content{
+			height: 100%;
+			padding: 50px 0;
+			.question{
+				text-align: left;
+				padding: 15px 25px;
+				margin: 10px;
+				border: 2px solid #E7C78F;
+				border-radius: 10px;
+				h1{
+					margin-bottom: 15px;
+					line-height: 1.3;
+					white-space: normal;
+					color: #BA7c01;
+					.type{
+						color: rgb(88, 181, 249);
+					}
+					.score{
+						color: rgb(255, 125, 103);
+					}
+				}
+				.answer-li{
+					line-height: 1.3;
+					white-space: normal;
+					margin: 8px 0;
+					margin-bottom: 20px;
+					padding:10px 15px;
+					background: url(/static/images/content-choice-box-wxz.png) no-repeat;
+					background-size: 100% 100%;
+					color: #FEA504;
+					&.correct{
+						background: url(/static/images/content-choice-box-cwda.png) no-repeat;
+						background-size: 100% 100%;
+						color: white;
+					}
+				}
+			}
+		}
+		.foot{
+			&.active{
+				height: 300px;
+				z-index: 600;
+				.foot-header{
+					border-bottom: 1px solid #EBECEE;
+				}
+			}
+			transition: height 1s;
+			width: 100%;
+			background: white;
+			z-index: 111;
+			height: 50px;
+			position: fixed;
+			bottom: 0;
+			overflow: hidden;
+			.foot-header{
+				width: 100%;
+				display: flex;
+				height: 50px;
+				>div{
+					align-self: center;
+					text-align: center;
+				}
+				.left, .right{
+					flex: 1;
+					img, .span{
+						display: inline-block;
+						vertical-align: middle;
+					}
+					span{
+						color: #9D6500;
+					}
+					img{
+						width: 36px;
+					}
+				}
+				.center{
+					font-size: 20px;
+					color: #9D6500;
+					flex: 2
+				}
+			}
+			.foot-content{
+				display: flex;
+				flex-wrap: wrap;
+				span{
+					&.done{
+						color: white;
+						background-image: url('/static/images/pop-btn-selected-yman.png') !important;
+					}
+					&.current{
+						color: white;
+						background-image: url('/static/images/pop-btn-selected-ctan.png');
+					}
+					cursor: pointer;
+					color: #40ADFF;
+					background: url('/static/images/pop-btn-default-yman.png') no-repeat;
+					background-size: 64%;
+					background-position: 50%;
+					width: calc(100% / 6);
+					text-align: center;
+					height: 40px;
+					line-height: 40px;
+					margin: 10px 0;
+					font-weight: 700;
+					img{
+						width: 40px;
+					}
+				}
+			}
+		}
+    }
+</style>
+
+

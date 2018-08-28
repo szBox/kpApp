@@ -1,0 +1,239 @@
+<template>
+	<div class="user-shenqing">
+		<header class="header">
+			<div @click="back()"><img src="/static/images/nav-forget-icon-goback.png" alt="" /></div>
+			<h1>我的申请</h1>
+			<em @click="goAdd()">申请挑战</em>
+		</header>
+		<div class="my-content">
+			<div  class='my-scroll'>
+				<cube-scroll
+				ref="scroll"
+				@pulling-down="onPullingDown"
+	   			@pulling-up="onPullingUp"
+				:options="ScrollOptions">
+					<ul class="ul-shenqing" v-if='list.length>0'>
+						<li v-for='(item,index) in list'>
+							<img :src="item.bookUrl"/>
+							<div>
+								<h3 class="ellipsis">
+									{{item.bookName}}
+								</h3>
+								<h4>
+									申请状态 : <span :class="item.verifyStatus | colorFn">{{item.verifyStatus | statusName}}</span>
+								</h4>
+								<h5>
+									申请时间 : {{item.insertTime | ymdHm}}
+								</h5>
+							</div>
+							
+							<span @click="goInfo(item.verifyStatus,item.id)">查看</span>
+						</li>
+					</ul>
+				</cube-scroll>
+			</div>		
+			<div class="no-data" v-if='nodata'>
+				<img src="/static/images/shenqno.png"/>
+			</div>
+		</div>
+		
+
+	</div>
+</template>
+
+<script>
+	import my from '@/network/my/my.js';
+	import filters from '@/lib/global.js';
+	export default({
+		data() {
+			return {
+				page:1,
+				size:10,
+				bookId:'',
+				list:[],
+				nodata:false
+			}
+		},
+		filters:{
+			...filters.dateFilter,
+			statusName(val){
+				if(val==0){
+					return '未处理'
+				}
+				if(val==1){
+					return '申请成功'
+				}
+				if(val==2){
+					return '未通过'
+				}
+			},
+			colorFn(val){
+				if(val==0){
+					return 'status-ing'
+				}
+				if(val==1){
+					return 'status-yes'
+				}
+				if(val==2){
+					return 'status-no'
+				}
+			}
+		},
+		mounted() {
+			this.getInit();
+		},
+		computed: {
+		   	ScrollOptions() {
+		      	return {
+		      		pullDownRefresh: this.pullDownRefreshObj,
+				    pullUpLoad: this.pullUpLoadObj,
+				    scrollbar: true
+//		        	scrollbar: this.scrollbarObj,
+//		       		startY: this.startY
+		      	}
+		    },
+		    scrollbarObj: function() {
+		      	return this.scrollbar ? { fade: this.scrollbarFade } : false
+		    }
+		 
+		},
+		methods: {
+			onPullingDown() {
+	
+				console.log('下下')
+			},
+			onPullingUp() {
+
+				console.log('上上')
+			},
+			back() {
+				this.$router.go(-1);
+			},
+			getInit (){
+				 let params ={
+				 	verifyType:2,//阅读挑战
+					stuId: this.global.session.get('user').id,
+					current: this.page,
+					size: this.size
+				}
+				my.readVerify(params).then(res=>{
+					console.log('我的申请',res);
+					if(res.data.code==0){
+						this.list=res.data.data.records;
+						if(res.data.data.records.length==0){
+							this.nodata=true;
+						}
+					}
+					
+				})
+			},
+			goInfo(type,id){
+				if(type!=0){
+					this.$router.push({
+						path:'/userShenqingSee/'+id
+					})
+				}
+				
+			},
+			goAdd(){
+				this.$router.push({
+					path:'/userShenqingAdd/'
+				})
+			}
+			
+			
+			
+		}
+
+	})
+</script>
+
+<style scoped lang="less">
+	.my-scroll{
+		/*margin-top: 50px;*/
+		height: calc(100% - 1px);
+		.cube-scroll-content{
+			height: 100%;
+		}
+	}
+	.my-content{
+		height: 100%;
+		padding-bottom: 0;
+	}
+	.user-shenqing {
+		background: #F5F5F5;
+		.ul-shenqing{
+			padding: 10px 0;
+			li{
+				overflow: hidden;
+				border-radius: 6px;
+				margin: 0 15px;
+				margin-top: 6px;
+				padding: 10px;
+				position: relative;
+				background: #fff;
+				>div,>span{
+					position: absolute;
+					
+					top: 50%;
+					-webkit-transform: translateY(-50%);
+					-moz-transform: translateY(-50%);
+					-ms-transform: translateY(-50%);
+					-o-transform: translateY(-50%);
+					transform: translateY(-50%);
+				}
+				img{
+					width: 70px;
+					height: 80px;
+					float: left;
+					border-radius: 4px 10px 10px 4px;
+					-webkit-box-shadow: 3px 3px 1px #E3E3E3;
+					box-shadow: 3px 3px 1px #E3E3E3;
+				}
+				>div{
+					float: left;
+					left:76px;
+					width: 52%;
+					font-size: 14px;
+					margin-left: 20px;
+					>h3{
+						-webkit-line-clamp: 1;
+						font-size: 16px;
+					}
+					>h4{
+						font-size: 14px;
+						margin: 6px 0;
+					}
+					>h5{
+						font-size: 14px;
+						color: #AAAAAA;
+					}
+					
+				}
+				>span{
+					right: 15px;
+					width: 50px;
+					padding-top: 8px;
+					margin-top: ;
+					padding-bottom: 8px;
+					background: #0393FF;
+					float: right;
+					font-size: 14px;
+					color: #fff;
+					text-align: center;
+					border-radius: 5px;
+				}
+			}
+			>li:last-child{
+				margin-bottom: 10px;
+			}
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+</style>

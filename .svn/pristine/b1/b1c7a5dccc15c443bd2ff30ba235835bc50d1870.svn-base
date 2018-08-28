@@ -1,0 +1,201 @@
+import Vue from 'vue'
+import Router from 'vue-router'
+Vue.use(Router)
+// 需要左方向动画的路由用this.$router.to('****')
+Router.prototype.togo = function (path) {
+  this.isleft = true
+  this.isright = false
+  this.push(path)
+}
+// 需要右方向动画的路由用this.$router.goRight('****')
+Router.prototype.goRight = function (path) {
+  this.isright = true
+  this.isleft = false
+  this.push(path)
+}
+// 需要返回按钮动画的路由用this.$router.goBack()，返回上一个路由
+Router.prototype.goBack = function () {
+  this.isright = true
+  this.isleft = false
+  this.go(-1)
+}
+// 点击浏览器返回按钮执行，此时不需要路由回退
+Router.prototype.togoback = function () {
+  this.isright = true
+  this.isleft = false
+}
+// 点击浏览器前进按钮执行
+Router.prototype.togoin = function () {
+  this.isright = false
+  this.isleft = true
+}
+
+
+import Login from '@/pages/login/login.vue'
+import Home from '@/pages/index.vue';
+import Index from '@/pages/home/index';
+import Person from '@/pages/home/person';
+import Game from '@/pages/main/game';
+
+/*************答题记录*******************/
+import Record from '@/pages/record/index'; //index
+import SeeInfo from '@/pages/record/see-info'; //查看详情
+import SeeError from '@/pages/record/see-error'; //只看错题
+
+/*************排行榜*******************/
+import Rank from '@/pages/rank/index'; //index
+
+/*************好书推荐*******************/
+import Books from '@/pages/books/index';//index
+
+/*************我的*******************/
+import My from '@/pages/my/index';//index
+import UserInfo from '@/pages/my/user-info'; //个人资料详情
+import UserError from '@/pages/my/user-error'; //我的错题分析
+import UserShoucang from '@/pages/my/user-shoucang';	//我的收藏
+import UserShoucangInfo from '@/pages/my/user-shoucang-info'; //收藏题目 详情
+import UserShenqing from '@/pages/my/user-shenqing';	//我的申请
+import UserShenqingSee from '@/pages/my/user-shenqing-see'; //查看
+import UserShenqingAdd from '@/pages/my/user-shenqing-add';	//挑战申请
+import UserSetting from '@/pages/my/user-setting';	//设置
+import UserMima from '@/pages/my/user-mima';	//修改密码
+import BeginChallenge from '@/pages/home/begin-challenge';	//开始闯关
+export default new Router({
+  routes: [
+    {
+      path: '/',
+      name: '',
+      component: Login,
+      redirect: '/login'
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: Login
+    },
+    {
+      path: '/index',
+      name: 'index',
+      component: Home,
+      children: [
+        {
+          path: '/home',
+          name: 'home',
+          meta: { title: '征信在线' },
+          component: Index
+        },
+        {
+          path: 'person',
+          name: 'person',
+          meta: { title: '个人中心' },
+          component: Person
+        },
+        {
+          path: '/record',
+          name: 'record',
+          meta: { title: '答题记录' },
+          component: Record
+        },
+        {
+          path: '/rank',
+          name: 'rank',
+          meta: { title: '排行榜' },
+          component: Rank
+        },
+        {
+          path: '/books',
+          name: 'books',
+          meta: { title: '好书推荐' },
+          component: Books
+        },
+        {
+          path: '/my',
+          name: 'my',
+          meta: { title: '我的' },
+          component: My
+        },
+        
+      ]
+    },
+    {
+      path: '/game',
+      name: 'game',
+      component: Game
+    },
+    
+    /**********答题记录**********/
+   	{
+      path: '/seeInfo/:id',
+      name: 'seeInfo',
+      meta: { title: '答题记录查看详情' },
+      component: SeeInfo
+    },
+    {
+      path: '/seeError/:id',
+      name: 'seeError',
+      meta: { title: '只看错题' },
+      component: SeeError
+    },
+    /**********我的*************/
+    {
+      path: '/userInfo',
+      name: 'UserInfo',
+      meta: { title: '个人信息' },
+      component: UserInfo
+    },
+    {
+      path: '/userError',
+      name: 'UserError',
+      meta: { title: '个人错题分析' },
+      component: UserError
+    },
+    {
+      path: '/userShoucang',
+      name: 'userShoucang',
+      meta: { title: '我收藏的题目' },
+      component: UserShoucang
+    },
+    {
+      path: '/userShoucangInfo/:id',
+      name: 'userShoucangInfo',
+      meta: { title: '我收藏的题目详情' },
+      component: UserShoucangInfo
+    },
+    {
+      path: '/userShenqing',
+      name: 'userShenqing',
+      meta: { title: '我的申请' },
+      component: UserShenqing
+    },
+    {
+      path: '/userShenqingSee/:id',
+      name: 'userShenqingSee',
+      meta: { title: '我的申请详情' },
+      component: UserShenqingSee
+    },
+    {
+      path: '/userShenqingAdd',
+      name: 'userShenqingAdd',
+      meta: { title: '挑战申请' },
+      component: UserShenqingAdd
+    },
+    {
+      path: '/userSetting',
+      name: 'userSetting',
+      meta: { title: '设置' },
+      component: UserSetting
+    },
+    {
+      path: '/userMima',
+      name: 'userMima',
+      meta: { title: '修改密码' },
+      component: UserMima
+    },
+    {
+      path: '/beginChallenge',
+      name: 'beginChallenge',
+      meta: { title: '开始闯关' },
+      component: BeginChallenge
+    },
+  ]
+})

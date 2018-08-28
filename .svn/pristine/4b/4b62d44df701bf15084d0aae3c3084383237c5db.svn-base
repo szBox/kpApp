@@ -1,0 +1,30 @@
+<template>
+  <div id="app">
+    <router-view/>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'app'
+}
+</script>
+
+<style lang="less">
+#app {
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #515151;
+  /*height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;*/
+}
+#app>div:first-child{
+    height: 100%;
+    overflow: hidden;
+    position: absolute;
+    width: 100%;
+	}
+</style>

@@ -1,0 +1,12 @@
+import network from '../index';
+const preUrlPath = '/readBook';
+
+export default {
+    async homeBooks (params) {
+        const res = await network.post({
+            url: `${preUrlPath}/list/challengeBookPage`,
+            data: params
+        });
+        return res;
+    }
+}

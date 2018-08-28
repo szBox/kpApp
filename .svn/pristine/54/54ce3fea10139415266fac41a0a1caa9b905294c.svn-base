@@ -1,0 +1,394 @@
+//柱状图
+ export default{
+ 	zhu (Xtype,dataArr1,dataArr2) {
+ 		return{
+				color: ['#F87D51', '#2C8CF0'],
+				title: {
+					subtext: '\n\n\n\n\n\n完成率',
+					left:20,
+					top:20,
+					subtextStyle: {
+						//文字颜色
+						color: '#318EEF',
+						//字体风格,'normal','italic','oblique'
+						fontStyle: 'normal',
+						//字体系列
+						fontFamily: 'sans-serif',
+						//字体大小
+						fontSize: 14,
+					},
+					text: '阅读统计',
+					textStyle: {
+						//文字颜色
+						color: '#9FA7B4',
+						//字体风格,'normal','italic','oblique'
+						fontStyle: 'normal',
+						//字体系列
+						fontFamily: 'sans-serif',
+						//字体大小
+						fontSize: 15,
+					},
+				},
+				tooltip: {
+					trigger: 'axis',
+					axisPointer: {
+						type: 'shadow'
+					},
+					//					formatter: function(value){
+					//						var res='';
+					//		               console.log(value)
+					//		                for(var i=0; i<value.length; i++){
+					//		                	res+=value[i].seriesName+'：'+value[i].data+'%</br>'
+					//		                }
+					//            			return '完成率'+'<br>'+ res
+					//         			}
+
+				},
+				grid:{
+	                top:'30%',//距上边距
+	
+	
+//	             bottom:'25%',//距离下边距
+
+              },
+				legend: {
+					data: ['必读书籍完成率', '选读书籍完成率'],
+					right: 20,
+					top:20,
+					orient: 'vertical',
+
+				},
+				calculable: true,
+				xAxis: [{
+					offset: 15,
+					type: 'category',
+					splitLine: {
+						show: false, //去掉横线
+
+					},
+					axisTick: {
+						show: false
+					},
+					axisLine: {
+						lineStyle: {
+							//去掉X线条
+							color: '#555',
+							width: 0, //这里是为了突出显示加上的
+						}
+					},
+//					data: ['一年级', '二年级', '三年级', '四年级', '五年级', '六年级']
+					data:Xtype
+				}],
+				yAxis: [{
+					type: 'value',
+					splitLine: {
+						show: true, //去掉横线
+					},
+					axisLabel: {
+						formatter: '{value} %'
+					},
+					max: 100,
+					splitNumber: 5,
+					axisTick: {
+						show: false //去掉坐标刻度
+					},
+					axisLine: {
+						lineStyle: {
+							//去掉Y线条
+							color: '#555',
+							width: 0, //这里是为了突出显示加上的
+						}
+					},
+
+				}],
+				series: [
+					{
+						name: '必读书籍完成率',
+						type: 'bar',
+						barGap: 0,
+						barWidth: 20, //柱图宽度
+//						data: [50, 70, 90, 40, 85, 95],
+						data:dataArr1,
+						itemStyle: {
+							normal: {
+								barBorderRadius: [10, 10, 0, 0],
+								label: {
+									show: true,
+									position: 'top',
+									textStyle: {
+										color: '#667280',
+										fontSize: '10'
+									},
+									formatter: function(value) {
+										return value.data + '%'
+									}
+
+								}
+
+							}
+						},
+
+					},
+					{
+						name: '选读书籍完成率',
+						type: 'bar',
+						barWidth: 20, //柱图宽度
+//						data: [30, 50, 50, 60, 70, 80],
+						data:dataArr2,
+						itemStyle: {
+							normal: {
+								barBorderRadius: [10, 10, 0, 0],
+								label: {
+									show: true,
+									position: 'top',
+									textStyle: {
+										color: '#667280',
+										fontSize: '10'
+									},
+									formatter: function(value) {
+										return value.data + '%'
+									}
+
+								}
+
+							}
+
+						},
+
+					},
+				],
+
+			
+ 		}
+
+ 	},
+ 	
+ 	zhexian (Xtype,dataArr1,dataArr2){
+ 		return {
+				title: {
+					text: '答题次数统计',
+					left:20,
+					top:20,
+					textStyle: {
+						//文字颜色
+						color: '#9FA7B4',
+						//字体风格,'normal','italic','oblique'
+						fontStyle: 'normal',
+						//字体系列
+						fontFamily: 'sans-serif',
+						//字体大小
+						fontSize: 15,
+					},
+				},
+				tooltip: {
+					trigger: 'axis',
+					axisPointer: {
+						type: 'line',
+						label: {
+							backgroundColor: 'red'
+						}
+					}
+				},
+				grid:{
+	                top:'30%',//距上边距
+	
+	
+//	             bottom:'25%',//距离下边距
+
+              },
+				legend: {
+					data: ['必读答题次数', '选读答题次数'],
+					right: 20,
+					top:20,
+					orient: 'vertical',
+				},
+				
+				toolbox: {
+					feature: {
+						saveAsImage: {}
+					},
+					show: false
+				},
+				
+				xAxis: [{
+					offset: 15,
+					type: 'category',
+					boundaryGap: false,
+//					data: ['', '一年级', '二年级', '三年级', '四年级', '五年级', '六年级'],
+					data:Xtype,
+					axisLine: {
+						lineStyle: {
+							//去掉X线条
+							color: '#555',
+							width: 0, //这里是为了突出显示加上的
+						}
+					},
+				}],
+				yAxis: [{
+						splitNumber: 5,
+						type: 'value',
+//						max: 100,
+						axisLine: {
+							lineStyle: {
+								//去掉Y线条
+								color: '#555',
+								width: 0, //这里是为了突出显示加上的
+							}
+						},
+					},
+
+				],
+				series: [
+					{
+						name: '选读答题次数',
+						type: 'line',
+						stack: '总量1',
+						areaStyle: {
+							normal: {}
+						},
+						color: ['#F9CBBC'], //对应上面data的背景色
+//						data: [0, 220, 182, 191, 234, 290, 330, 310],
+						data:dataArr2,
+						itemStyle: {
+							normal: {
+								color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+									offset: 0,
+									color: '#2C8CF0'
+								}, {
+									offset: 1,
+									color: '#bac9f2'
+								}]),
+
+								label: {
+									show: true,
+									position: 'top',
+									textStyle: {
+										color: '#667280',
+										fontSize: '10'
+									},
+									formatter: function(value) {
+										if(value.data==0){
+											return''
+										}else{
+											return value.data
+										}
+									}
+
+								}
+
+							}
+
+						},
+					},
+					{
+
+						name: '必读答题次数',
+						type: 'line',
+						stack: '总量2',
+						areaStyle: {
+							normal: {}
+						},
+						//  color:['#CED0DD'],//对应上面data的背景色
+//						data: [0, 120, 132, 101, 134, 90, 230, 210],
+						data: dataArr1,
+						itemStyle: {
+
+							normal: {
+								//color: 'red',
+								color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+									offset: 0,
+									color: '#F87D51'
+								}, {
+									offset: 1,
+									color: '#f5b29c'
+								}]),
+								label: {
+									show: true,
+									position: 'top',
+									textStyle: {
+										color: '#667280',
+										fontSize: '10'
+									},
+									formatter: function(value) {
+										if(value.data==0){
+											return''
+										}else{
+											return value.data
+										}
+										
+									}
+
+								}
+
+							}
+
+						},
+					},
+				]
+
+			
+ 		}
+ 	},
+ 	
+ 	//实心饼图
+ 	pie (dataName,dataArr){
+// 		console.log(dataArr);
+ 		let arr = [];
+ 		for(let item of dataArr) {
+ 			arr.push(item.name+item.value)
+ 		}
+// 		console.log(arr,dataArr);
+ 		return {
+			tooltip : {
+		        trigger: 'item',
+		        formatter: "{a} <br/>{b} : {c} ({d}%)"
+		    },
+		   	color:['#0293FE', '#FFB001','#FF583D','#FF7C41','#6ABFFF','#4AA8FF'],
+		    legend: {
+//		        orient: 'vertical',
+		        left: 'center',
+		        bottom:0,
+//		        data: ['直接访问','邮件营销','联盟广告','视频广告','搜索引擎'],
+				data:dataName,
+				formatter: function(res){
+					for(let item of dataArr) {
+						if(item.name == res) {
+							return res +'   '+ item.value + '%' +' '+'('+item.num+'题)';
+						}
+					};
+   				}
+		    },
+		    series : [
+		        {
+		            name: '错题率',
+		            type: 'pie',
+		            radius : '55%',
+		            center: ['50%', '35%'],
+//		            data:[
+//		                {value:335, name:'直接访问'},
+//		                {value:310, name:'邮件营销'},
+//		                {value:234, name:'联盟广告'},
+//		                {value:135, name:'视频广告'},
+//		                {value:1548, name:'搜索引擎'}
+//		            ],
+					data:dataArr,
+		            itemStyle : {
+				          normal : {
+				            label : {
+				              show : false
+				            },
+				            labelLine : {
+				              show : false
+				            }
+				          },
+
+        			},
+		        }
+		    ]
+				
+
+			
+ 		}
+ 	},
+ 	
+ }	

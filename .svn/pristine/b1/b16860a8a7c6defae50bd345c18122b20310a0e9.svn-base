@@ -1,0 +1,172 @@
+<template>
+	<div class="user-shoucang">
+		<header class="header">
+			<div @click="back()"><img src="/static/images/nav-forget-icon-goback.png" alt="" /></div>
+			<h1>我收藏的题目</h1>
+		</header>
+		<div class="my-content">
+			<div  class='my-scroll'>
+				<cube-scroll
+				ref="scroll"
+				@pulling-down="onPullingDown"
+	   			@pulling-up="onPullingUp"
+				:options="ScrollOptions">
+				
+					<ul class="ul-shoucang" v-if='list.length>0'>
+						<li v-for='(item,index) in list'>
+							<img v-if="!item.bookUrl" src="/static/images/booknocover.png"/>
+							<img v-else :src="item.bookUrl"/>
+							<p class="ellipsis">
+								{{item.bookName}}  (共{{item.bookCount}}道题)
+							</p>
+							<span @click="goInfo(item.bookId)">查看题目</span>
+						</li>
+					</ul>
+				</cube-scroll>
+			</div>	
+			<div class="no-data" v-if='nodata'>
+				<img src="../../assets/images/msg-scym.png"/>
+			</div>
+		</div>
+		
+
+	</div>
+</template>
+
+<script>
+	
+	import my from '@/network/my/my.js'
+	export default{
+		data() {
+			return {
+				page:1,
+				size:10,
+				bookId:'',
+				list:[],
+				nodata:false,
+			}
+		},
+		computed: {
+		   	ScrollOptions() {
+		      	return {
+		      		pullDownRefresh: this.pullDownRefreshObj,
+				    pullUpLoad: this.pullUpLoadObj,
+				    scrollbar: true
+//		        	scrollbar: this.scrollbarObj,
+//		       		startY: this.startY
+		      	}
+		    },
+		    scrollbarObj: function() {
+		      	return this.scrollbar ? { fade: this.scrollbarFade } : false
+		    }
+		 
+		},
+		mounted() {
+			this.getInit();
+		},
+		methods: {
+			onPullingDown() {
+	
+				console.log('下下')
+			},
+			onPullingUp() {
+
+				console.log('上上')
+			},
+			back() {
+				this.$router.go(-1);
+			},
+			getInit (){
+				 let params ={
+					bookId: this.bookId,
+					current: this.page,
+					size: this.size
+				}
+				my.shoucangBook(params).then(res=>{
+					console.log('收藏题目',res);
+					if(res.data.code==0){
+						this.list=res.data.data.records;
+						if(res.data.data.records.length==0){
+							this.nodata=true;
+						}
+					}
+					
+				})
+			},
+			goInfo(id){
+				this.$router.push({
+					path:'/userShoucangInfo/'+id
+				})
+			}
+			
+			
+			
+		}
+
+	}
+</script>
+
+<style scoped lang="less">
+	.my-scroll{
+		/*margin-top: 50px;*/
+		height: calc(100% - 100px);
+		.cube-scroll-content{
+			height: 100%;
+		}
+	}
+	.user-shoucang {
+		background: #fff;
+		.ul-shoucang{
+			padding: 6px 0;
+			li{
+				overflow: hidden;
+				border-bottom: 1px solid #F6F6F6;
+				padding: 4px 15px;
+				position: relative;
+				p,span{
+					position: absolute;
+					
+					top: 50%;
+					-webkit-transform: translateY(-50%);
+					-moz-transform: translateY(-50%);
+					-ms-transform: translateY(-50%);
+					-o-transform: translateY(-50%);
+					transform: translateY(-50%);
+				}
+				img{
+					width: 60px;
+					height: 70px;
+					float: left;
+				}
+				p{
+					float: left;
+					left:80px;
+					width: 48%;
+					font-size: 14px;
+					margin-left: 20px;
+					-webkit-line-clamp: 2;
+				}
+				span{
+					right: 15px;
+					width: 80px;
+					padding-top: 8px;
+					margin-top: ;
+					padding-bottom: 8px;
+					background: #0393FF;
+					float: right;
+					font-size: 14px;
+					color: #fff;
+					text-align: center;
+					border-radius: 5px;
+				}
+			}
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+</style>

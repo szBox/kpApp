@@ -1,0 +1,399 @@
+<template>
+	<div class="user-shoucang-info timu-bg">
+		<header class="header">
+			<div @click="back()"><img src="/static/images/nav-icon-goback.png" alt="" /></div>
+			<h1>答题详情</h1>
+		</header>
+		<div class="my-content">
+			<cube-scroll ref="scroll">
+				<ul class="paper-box">
+					<li v-for="(item,index) in list">
+						<h5 class="paper-title">
+							{{(index+1 < 10 ? '0' + (index+1) : index+1)}}.
+							<span style="color: #58B5F9;">
+								({{item.answerContent.split(',').length>1?'多选题':'单选题'}})
+							</span>
+							
+							{{item.qname}}	
+							<span style="color: #FF7D67;">
+								({{item.score}}分)
+							</span>
+						</h5>
+						<div class="paper-cover" v-if="item.qimageUrl">
+							<img style="max-height: 180px;" :src="(item.qimageUrl.indexOf('?uploadId')?item.qimageUrl.split('?uploadId')[0]:item.qimageUrl)" alt="" />
+						</div>
+						<ul class="ul-abcd">
+							<li v-for='(option,index) in item.chioces' :class="{
+									'optionActiveY':item.isright=='Y'&&item.answerContent.indexOf(option.id) != -1,
+									'optionActiveN':item.isright=='N'&&item.answerContent.indexOf(option.id) != -1}">
+								<span class='option-A'>
+									{{index+1 | optionFilter}} :
+								</span>
+								{{option.value}}
+							</li>
+							
+							
+						</ul>
+						
+						<div class="answer-hh">
+							你的答案是 : 
+							<span :class="{'answerY':item.isright=='Y'}">{{item.answerContent | answerFn(item.chioces)}}</span>
+							<span :class="{'answerY':item.isright=='Y'}">{{(item.isright=='Y'?'回答正确':'回答错误')}}</span>
+							<p @click="soucang(item.aid,item.collectionId,item)">
+								<i>
+									收藏
+								</i>
+								<img :src="(item.collectionId==null?'/static/images/content-btn-default-sc.png':'/static/images/content-btn-selected-sc.png')" alt="" />
+							</p>
+							
+							
+						</div>
+					</li>
+				</ul>
+		  	</cube-scroll>
+		  	
+		</div>
+		<div class="self-mask" :class="{active: isShow}" @click="isShow = false"></div>
+		<div class="foot" :class="{active: isShow}">
+				<div class="foot-header">
+					<div class="left">
+						<span>成绩:</span><span style="color: #58B5F9;">{{init.score}}分</span>
+					</div>
+					
+					<div class="right">
+						<span>共{{init.questionsCount}}道题,答错<i style="color: #FF7D67;">{{init.errorQuestionsCount}}</i>道</span>
+						<img src="/static/images/tab-icon-ym.png" alt="" @click="showAll">
+					</div>
+				</div>
+				<div style="height: 250px;">
+					<cube-scroll ref="scroll2">
+				  	<ul class="foot-content">
+				  		<li v-for="(sheet,index) in list" 
+				  			:class="{sheetY:sheet.isright=='Y'}" 
+				  			@click="scollTo(index)"
+				  			:key='index'>
+				  			{{index+1}}
+				  		</li>
+				  	</ul>
+		  		</cube-scroll>
+				</div>
+			</div>
+	</div>
+</template>
+
+<script>
+	
+	import record from '@/network/record/record.js'
+	export default{
+		data() {
+			return {
+				bookId:'',
+				list:[],
+				sheetList:[],
+				isShow: false,
+				init:'',
+			}
+		},
+		
+		mounted() {
+			
+			this.getList();
+		},
+		filters:{
+			optionFilter(val){
+				if(val==1){
+					return 'A'
+				}
+				if(val==2){
+					return 'B'
+				}
+				if(val==3){
+					return 'C'
+				}
+				if(val==4){
+					return 'D'
+				}
+				if(val==5){
+					return 'E'
+				}
+			},
+			answerFn(val,ids){
+				var abcd=''
+				var abcdArr =['A','B','C','D','E'];
+				var answerData = val.split(',');
+				for(var i=0; i<ids.length; i++){
+					for(var j=0; j<answerData.length; j++){
+						if(ids[i].id==answerData[j]){
+							abcd += abcdArr[ids.indexOf(ids[i])]
+						}
+					}
+				}
+				return abcd
+			},	
+		
+			
+		},
+		methods: {
+			back() {
+				this.$router.push('/record');
+			},
+			soucang(id,type,obj){
+			
+				console.log(type,'状态id')
+				let params = {
+					answerId:id
+				}
+				if(type==''||type==null){
+					record.collectionAdd(params).then(res=>{
+						if(res.data.code==0){
+							obj.collectionId=res.data.data;
+							console.log(obj,'22')
+						}
+					
+					})
+				}else{
+					record.collectionDel(type).then(res=>{
+						if(res.data.code==0){
+							obj.collectionId=null;
+							console.log(obj,'22')
+						}
+					})
+				}
+				
+			},
+			getList (){
+				 let params ={
+					id: this.$route.query.id,
+					isright: this.$route.query.type
+
+				}
+				record.infoList(params).then(res=>{
+					console.log('收藏题目详情',res);
+					if(res.data.code==0){
+						this.init= res.data.data
+						this.list=res.data.data.answerList;
+//						this.sheetList= res.data.data.answerList;
+					}
+					
+				})
+			},
+			scollTo(index){
+				console.log(index)
+				let dom = document.querySelector('.paper-box').children[index];
+				this.$refs.scroll.scrollTo(0, -dom.offsetTop+10, 400, 'ease')
+				
+			},
+			
+			showAll() {
+				this.isShow = !this.isShow;
+		    }
+		}
+
+	}
+</script>
+
+<style scoped lang="less">
+	.user-shoucang-info {
+		height: 100%;
+		.header{
+			background: transparent;
+			h1{
+				color: #996809;
+			}
+		}
+		.my-content{
+			height:calc(100% - 100px);
+			padding-top: 0;
+			margin-top: 50px;
+			padding-bottom: 0;
+			overflow: auto;
+		}
+		background: url(/static/images/bgg1.jpg);
+		background-size: cover;
+		
+		.self-mask{
+			&.active{
+				z-index: 500;
+				opacity: .4;
+			}
+			transition: opacity 1s;
+			position: fixed;
+			top: 0;
+			left: 0;
+			height: 100%;
+			width: 100%;
+			z-index: -100;
+			background: black;
+			opacity: 0;
+		}
+		ul.paper-box{
+			padding:10px 15px;
+			>li{
+				/*background: red;*/
+					background: rgba(255,255,255,0.3);
+				padding: 15px 25px;
+				margin-bottom: 15px;
+				border: 2px solid #E7C78F;
+				border-radius: 10px;
+			}
+		
+			.paper-title{
+				/*padding: 0 15px;*/
+				margin: 5px 0 15px;
+				color: #BA7c01;
+				font-size: 16px;
+			}
+			ul.ul-abcd{
+				/*padding: 0 15px;*/
+				
+				overflow: hidden;
+				li{
+					
+					margin: 8px 0;
+					margin-bottom: 20px;
+					padding:5px 15px;
+					/*border-radius: 6px;*/
+					/*border: 1px solid #FEA504;*/
+					background: url(/static/images/content-choice-box-wxz.png) no-repeat;
+					background-size: 100% 100%;
+					color: #FEA504;
+					font-size: 16px;
+				}
+				
+				/*li:nth-child(3n){
+					clear: left;
+				}*/
+			}
+			div.answer-hh{
+				color: #7C644A;
+				font-size: 16px;
+				line-height: 20px;
+				>p{
+					float: right;
+					>img{
+						float: right;
+						width: 20px;
+						vertical-align: middle;
+						margin-top: -2px;
+						margin-right: 5px;
+					}
+					>i{
+					float: right;
+					}
+				}
+				
+				>span{
+					color: #FF7D67;
+				}
+				>span.answerY{
+					color: #58B5F9;
+				}
+				
+			}
+			.ul-abcd li.optionActiveN{
+				color: #fff;
+				background: url(/static/images/content-choice-box-cwda.png) no-repeat;
+				background-size: 100% 100%;
+			}
+			.ul-abcd li.optionActiveY{
+				color: #fff;
+				background: url(/static/images/content-choice-box-zqda.png) no-repeat;
+				background-size: 100% 100%;
+			}
+		}
+		.option-A{
+			display: inline-block;
+			width: 25px;
+			height: 25px;
+			line-height: 25px;
+			text-align: center;
+		}
+		
+		.cover-bg{
+			position: fixed;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			background: rgba(0,0,0,.5);
+			z-index: 9999;
+		}
+		.foot{
+			&.active{
+				height: 300px;
+				z-index: 600;
+				.foot-header{
+					border-bottom: 1px solid #EBECEE;
+				}
+			}
+			transition: height 1s;
+			width: 100%;
+			background: white;
+			z-index: 111;
+			height: 50px;
+			position: fixed;
+			bottom: 0;
+			overflow: hidden;
+			.foot-header{
+				overflow: hidden;
+				height: 50px;
+				line-height: 45px;
+				padding:0 10px;
+				>.left{
+					color: #A17423;
+					float: left;
+					>span{
+						font-size: 15px;
+					}
+				}
+				>.right{
+					float: right;
+					>span{
+						color: #A17423;
+						font-size: 13px;
+					}
+					>img{
+						width: 28px;
+						vertical-align: middle;
+					}
+					>img:active .sheet-ul{
+						height: 300px;
+						
+					}
+				}
+			}
+			.foot-content{
+				display: flex;
+				flex-wrap: wrap;
+				li{
+					cursor: pointer;
+					font-size: 14px;
+					color: #fff;
+					background: url(/static/images/pop-btn-selected-ctan.png) no-repeat;
+					background-size: 64%;
+					background-position: 50%;
+					width: calc(100% / 6);
+					text-align: center;
+					height: 40px;
+					line-height: 40px;
+					margin: 10px 0;
+					font-weight: 700;
+					img{
+						width: 40px;
+					}
+				}
+				li.sheetY{
+					background: url(/static/images/pop-btn-selected-yman.png) no-repeat;
+					background-size: 64%;
+					background-position: 50%;
+				}
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+</style>

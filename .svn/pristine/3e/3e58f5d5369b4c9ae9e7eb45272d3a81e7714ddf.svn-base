@@ -1,0 +1,42 @@
+<template>
+    <div class="begin-challenge">
+		<header class="header">
+			<div @click="back()"><img src="/static/images/nav-icon-goback.png" alt="" /></div>
+			<h1>收藏详情</h1>
+		</header>
+    </div>
+</template>
+<script>
+import home from '@/network/home/home.js';
+export default {
+    data() {
+			return {
+
+			}
+		},
+		methods: {
+			init() {
+				let query = this.$route.query;
+				home.beginChallenge(query).then(res => {
+					console.log(res);
+				})
+			}
+		},
+		created() {
+			this.init();
+		}
+}
+</script>
+<style lang="less" scoped>
+    .begin-challenge{
+		height: 100%;
+		.header{
+			background: transparent;
+			h1{
+				color: #996809;
+			}
+		}
+    }
+</style>
+
+

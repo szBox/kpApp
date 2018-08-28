@@ -1,0 +1,13 @@
+import network from '../index';
+
+export default {
+	//查看详情
+    async infoList (params) {
+        const res = await network.post({
+            url: `/answer/getAnswerDetail`,
+            data:params
+        });
+        return res;
+    },
+   
+}

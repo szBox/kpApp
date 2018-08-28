@@ -1,0 +1,163 @@
+<template>
+	<div class="my">
+		<div class="user-top">
+			<h1 @click="homeShenqing('5','易经经')">{{init.name}}</h1>
+			<div class="user" @click="goUser()">
+				<img class="user-img" :src="init.headPic" alt="" />
+				<span>{{init.className}}</span>
+				<img class='icon-right' src="/static/images/content-bsjt-icon-right.png" alt="" />
+			</div>
+		</div>
+		<ul class="user-ul">
+			<li @click="goError()">
+				<img class="icon-li" src="/static/images/content-ctfx-icon.png"/>
+				<span>个人错题分析</span>
+				<img class='icon-right' src="/static/images/content-jt-icon-right.png"/>
+			</li>
+			<li @click="goShoucang()">
+				<img class="icon-li" src="/static/images/content-sctm-icon.png"/>
+				<span>我收藏的题目</span>
+				<img class='icon-right' src="/static/images/content-jt-icon-right.png"/>
+			</li>
+			<li @click="goShenqing()">
+				<img class="icon-li" src="/static/images/content-wdsq-icon.png"/>
+				<span>我的申请</span>
+				<img class='icon-right' src="/static/images/content-jt-icon-right.png"/>
+			</li>
+			<li @click="goSetting()">
+				<img class="icon-li" src="/static/images/content-sz-icon.png"/>
+				<span>设置</span>
+				<img class='icon-right' src="/static/images/content-jt-icon-right.png"/>
+			</li>
+		</ul>
+		
+	</div>
+</template>
+
+<script>
+	import my from '@/network/my/my.js'
+	export default{
+		data() {
+			return {
+				init:[],
+			}
+		},
+		
+		mounted() {
+//			this.getUser();
+			this.getInit();
+		},
+		methods: {
+			back () {
+				this.$router.go(-1);
+			},
+			getInit (){
+				let id = this.global.session.get('user').id;
+				my.get(id).then(res=>{
+					console.log('用户信息',res);
+					if(res.data.code==0){
+						this.init=res.data.data
+					}
+					
+				})
+			},
+			goUser () {
+				this.$router.push({
+					path:'/userInfo'
+				})
+			},
+			goError (){
+				this.$router.push({
+					path:'/userError'
+				})
+			},
+			goShoucang(){
+				this.$router.push({
+					path:'/userShoucang'
+				})
+			},
+			goShenqing(){
+				this.$router.push({
+					path:'/userShenqing'
+				})
+			},
+			goSetting(){
+				this.$router.push({
+					path:'/userSetting'
+				})
+			},
+			homeShenqing(id,name){
+				this.$router.push({
+					path:'/home-shenqing',
+					query:{
+						id:id,
+						name:name
+					}
+				})
+			}
+		}	
+	}
+</script>
+
+<style lang="less">
+	.my{
+		.user-top{
+			background: url(/static/images/user-top.png);
+			background-size: cover;
+			padding:20px 15px ;
+			>h1{
+				font-size: 22px;
+				color: #fff;
+				font-weight: bold;
+			}
+			.user{
+				position: relative;
+				line-height: 70px;
+				margin-top: 20px;
+				.user-img{
+					width: 70px;
+					height: 70px;
+					border-radius: 50%;
+					vertical-align: middle;
+				}
+				>span{
+					color: #fff;
+					margin-left: 15px;
+					font-size: 15px;
+				}
+				>.icon-right{
+					position: absolute;
+					width: 20px;
+					top: 50%;
+					right: 0;
+					-webkit-transform: translateY(-50%);
+					-moz-transform: translateY(-50%);
+					-ms-transform: translateY(-50%);
+					-o-transform: translateY(-50%);
+					transform: translateY(-50%);
+				}
+			}
+		}
+		.user-ul{
+			padding:5px 15px;
+			li{
+				position: relative;
+				border-bottom: 1px solid #F7F7F7;
+				line-height: 48px;
+				img.icon-li{
+					width: 30px;
+					
+					vertical-align: middle;
+				}
+				
+				span{
+					color: #515151;
+					font-size: 14px;
+					margin-left: 12px;
+				}
+				
+			}
+		}
+	}
+	
+</style>

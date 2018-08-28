@@ -1,0 +1,169 @@
+<template>
+	<div class="user-shenqing-add">
+		<header class="header">
+			<div @click="back()"><img src="/static/images/nav-forget-icon-goback.png" alt="" /></div>
+			<h1>重新申请答题</h1>
+		</header>
+		<div class="my-content">
+			<div class="bgg"></div>
+			<div class="remake-book">
+				<span>申请书籍 : </span>
+				<!--<input type="text" />-->
+				<p class="bookName">
+				{{bookName}}
+				</p>
+				
+			</div>
+			<div class="bgg"></div>
+			<div class="remake-div">
+				<h6>申请原因:</h6>
+				<textarea  id='textarea' @input="maxLen(remake)" maxlength="200"  v-model.trim='remake' placeholder="请输入申请原因..."></textarea>
+				<em v-if='maxL!=200' class="em-max">{{maxL}}</em>
+			</div>
+			
+			<div @click="dis && getAdd()" class="btn-tijiao">提交申请</div>
+		</div>
+		
+
+	</div>
+</template>
+
+<script>
+	import my from '@/network/my/my.js';
+	import common from '@/network/common/common.js';
+	export default({
+		data() {
+			return {
+				value:'',
+				remake:'',
+				bookName:'',
+				bookId:'',
+				init:[],
+				maxL:200,
+				dis:true,
+      			
+			}
+		},
+		
+		mounted() {
+			this.bookId=this.$route.query.id;
+			this.bookName=this.$route.query.name;
+		},
+		computed:{
+			
+		},
+		methods: {
+			back() {
+				this.$router.go(-1);
+			},
+			maxLen(val){
+				var self=this;
+				self.maxL=200-val.length
+			},
+			change(val){
+				console.log(val);
+			},
+			
+			getAdd (){
+				var self =this;
+				let params = {
+					  bookId: this.bookId,
+					  remark: this.remake,
+					  stuId: this.global.session.get('user').id
+				}
+				if(this.remake==''){
+					const toast = this.$createToast({
+				        time: 1000,
+				        txt: '请输入申请原因',
+				        type:'warn'
+			   		})
+			    	toast.show()
+				}else{
+					my.readVerifyAdd(params).then(res=>{
+						if(res.data.code==0){
+							this.dis=false;
+							const toast = this.$createToast({
+						        time: 1000,
+						        txt: '提交成功,等待审核',
+						        type:'correct'
+					   		})
+					    	toast.show()
+							setTimeout(function(){
+								self.$router.go(-1);
+							},1000)
+						}
+					
+					})
+				}
+				
+			},
+			
+			
+			
+			
+		}
+
+	})
+</script>
+
+<style scoped lang="less">
+	.user-shenqing-add {
+		background: #fff;
+		.cube-select::after{
+			border: none;
+		}
+		.cube-select-icon{
+			display: none;
+		}
+		.remake-book{
+			padding: 15px;
+			overflow:hidden;
+			>span{
+				line-height: 40px;
+				font-size: 15px;
+				color: #9B9B9B;
+				float: left;
+			}
+		
+			>p.bookName{
+				float: left;
+				width: 78%;
+				font-size: 16px;
+				height: 40px;
+				line-height: 40px;
+			}
+		}
+		.remake-div{
+			padding: 15px;
+			position: relative;
+			>h6{
+				font-size: 15px;
+				color: #9B9B9B;
+				margin-bottom: 15px;
+			}
+			>textarea{
+				width: 100%;
+				font-size: 14px;
+				height: 240px;
+				text-align: justify;
+				color: #555555;
+				line-height: 23px;
+				border: none;
+			}
+			>em{
+				position: absolute;
+				bottom: 20px;
+				right: 20px;
+				color: #999;
+				font-size: 15px;
+			}
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+</style>

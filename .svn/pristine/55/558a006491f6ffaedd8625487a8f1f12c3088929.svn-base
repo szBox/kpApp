@@ -1,0 +1,190 @@
+
+
+@header-h1-color:#515151;
+@header-h1-font:20px;
+@header-em-font:14px;
+
+* {
+    margin: 0;
+    padding: 0;
+    font-size: 14rem;
+    text-decoration: none;
+    font-weight: normal;
+    font-style: normal;
+    word-wrap: break-word;
+    list-style: none;
+    box-sizing: border-box;
+    resize: none;
+    -moz-box-sizing: border-box;
+    outline: none;
+    /* Firefox */
+    -webkit-box-sizing: border-box;
+    /* Safari */
+}
+ 
+button:active {
+    background-color: #aaa !important;
+}
+.ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+}
+.bgg{
+    background: #F5F5F5;
+    height: 8px;
+}
+.rt{
+    float:right;
+}
+.lf{
+    float: left;
+}
+.overflow{
+    overflow: hidden;
+}
+.clear{
+    clear:both;
+}
+.imgz{
+    width: 100%;
+    height: 100%;
+}
+.my-content{
+    padding-top: 50px;
+    padding-bottom:50px;
+//  padding-bottom: 3.3rem;
+}
+.header {
+    background: #fff;
+    -webkit-box-shadow: 0 0 0.266667rem #E3E3E3;
+    box-shadow: 0 0 0.266667rem #E3E3E3;
+    z-index: 99;
+    padding-left:13px;
+    padding-right:13px;
+    position: fixed;
+    width: 100%;
+    h1 {
+        height:50px;
+        line-height: 50px;
+        text-align: center;
+        font-size:@header-h1-font;
+        color: @header-h1-color;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 1;
+        width: 60%;
+        margin: 0 auto;
+    }
+    div,
+    em,
+    p {
+        height: 100%;
+        position: absolute;
+        top:0%;
+        color:#fff;
+        line-height:50px;
+    }
+    div{
+       /*div  是带返回的*/
+        width:36px;
+        >img {
+            width: 20px;
+            vertical-align: middle;
+        }
+        
+    }
+    p{
+    /*p  是左边大文字的*/
+        color: @header-h1-color;
+        font-size: 20px;
+        font-weight: bold;
+        >img{
+            margin-left: 16px;
+            width: 18px;
+            vertical-align: middle;
+        }
+    }
+    em {
+    /*em   是右边文字的*/
+        color:@header-h1-color;
+        font-size: @header-em-font;
+        width: auto;
+        right:13px;
+    }
+}
+.picker-item{
+    color: #999 !important;
+}
+::-webkit-input-placeholder{color: #d0d0d0;font-size:14px}    /* 使用webkit内核的浏览器 */
+:-moz-placeholder{color: #d0d0d0;font-size:14px}                  /* Firefox版本4-18 */
+::-moz-placeholder{color: #d0d0d0;font-size:14px}                  /* Firefox版本19+ */
+.no-data{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%,-50%);
+    -moz-transform: translate(-50%,-50%);
+    -ms-transform: translate(-50%,-50%);
+    -o-transform: translate(-50%,-50%);
+    transform: translate(-50%,-50%);
+    >img{
+        width: 200px;
+        height: 200px;
+    }
+}
+.timu-bg{
+    overflow: hidden !important;
+}
+//审核中
+.status-ing{
+    color: #FEBA27;
+}
+//审核通过
+.status-yes{
+    color: #1FA1FF;
+}
+//审核驳回
+.status-no{
+    color: #9A9A9A;
+}
+
+// li- 右边箭头
+img.icon-right{
+    position: absolute;
+    width: 20px;
+    top: 50%;
+    right: 0;
+    -webkit-transform: translateY(-50%);
+    -moz-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    -o-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+//提交按钮
+.btn-tijiao{
+    width: 80%;
+    margin: 20px auto 0;
+    text-align: center;
+    color: #fff;
+    font-size: 16px;
+    line-height: 40px;
+    border-radius: 6px;
+    background: #0293FE;
+}
+//li  需要垂直居中的div
+.li-absolut{
+    position: absolute;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    -moz-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    -o-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+
+

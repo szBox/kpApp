@@ -1,0 +1,211 @@
+<template>
+	<div class="user-info">
+		<header class="header">
+			<div @click="back()"><img src="../../assets/images/nav-forget-icon-goback.png" alt="" /></div>
+			<h1>个人信息</h1>
+			<em @click="dis && baocun()">保存</em>
+		</header>
+		<div class="my-content">
+			<div class="ziliao-box">
+				<div class="ziliao-div">
+					<em>头像</em>
+					<div class="file-div">
+						<img class="file-img" :src="userImg" alt="" />
+						<input type="file" name="file1" id="imgFile" accept="image/*" @change="addPic">
+					</div>
+				</div>
+				<div class="ziliao-div">
+					<em>姓名</em>
+					<input type="text" v-model="userNmae" />
+				</div>
+				<div class="ziliao-div">
+					<em>班级</em>
+					<input type="text" readonly v-model="userClassName" />
+				</div>
+
+			</div>
+		</div>
+		
+
+	</div>
+</template>
+
+<script>
+	
+	import my from '@/network/my/my.js'
+	export default{
+		data() {
+			return {
+				init:{
+					
+				},
+				userImg: '',
+				userNmae: '',
+				userClassName:'',
+				dis:true,
+			}
+		},
+		
+		mounted() {
+			this.getInit();
+		},
+		methods: {
+			back() {
+				this.$router.go(-1);
+			},
+			getInit (){
+				let id = this.global.session.get('user').id;
+				my.get(id).then(res=>{
+					if(res.data.code==0){
+						this.init=res.data.data;
+						this.userImg = res.data.data.headPic;
+						this.userNmae = res.data.data.name;
+						this.userClassName = res.data.data.className;
+					}
+					
+				})
+			},
+			addPic() {
+				var self = this;
+				self.userImg = document.getElementById('imgFile').files[0];
+				
+				self.global.alyConfig.uploadToAliyun(self.userImg, function(url) {
+					self.userImg = url;
+				})
+			},
+			
+			baocun() {
+				var self = this;
+				if(this.init.headPic!=this.userImg || this.init.name!=this.userNmae) {
+					
+					if(!this.userNmae) {
+						const toast = this.$createToast({
+			        		time: 1000,
+					        txt: '姓名不能为空',
+					        type:'warn'
+			    		})
+			    		toast.show()
+					}
+					else {
+						var params = {
+							headPic:this.userImg,
+							name:this.userNmae,
+							id:this.global.session.get('user').id
+						}
+						my.edit(params).then(res=>{
+							if(res.data.code==0){
+								this.dis=false;
+								const toast = this.$createToast({
+					        		time: 1000,
+							        txt: '修改成功',
+							        type:'correct'
+					    		})
+					    		toast.show()
+								setTimeout(function(){
+									
+									self.$router.go(-1);
+								},500)
+							}
+							
+						})
+						
+					}
+				}
+
+			},
+			
+		}
+
+	}
+</script>
+
+<style scoped lang="less">
+	.user-info {
+		background: #fff;
+		.ziliao-box{
+			padding: 0 15px;
+			.ziliao-div {
+		        border-bottom: 1px solid #F5F5F5;
+		        line-height: 50px;
+		        overflow: hidden;
+		        em{
+		            float: left;
+		            font-size: 14px;
+		            
+		        }
+		        span{
+		            float: right;
+		            width: 100%;
+		           
+		        }
+		        input{
+		            float: right;
+		            text-align: right;
+		            height: 50px;
+		            margin-right: 15px;
+		            border: none;
+		            width: 78%;
+		            font-size: 14px;
+		            color: #959595;
+		        }
+		        textarea{
+		            color: #959595;
+		            font-size: 14px;
+		        }
+		        img{
+		             float: right;
+		             width: 40px;
+		             height: 40px;
+		             border-radius: 50%;
+		              margin-right: 15px;
+		              margin-top: 5px;
+		        }
+		        .file-div{
+		            position: relative;
+		            float: right;
+		            input{
+		                width: 40px;
+		                height: 40px;
+		                position: absolute;
+		                right: 0;
+		                opacity: 0;
+		                margin-top:5px;
+		            }
+		            img{
+		                position: absolute;
+		                right: 0;
+		            }
+		        }
+		    }
+		}
+		
+	    ::-webkit-input-placeholder {
+			color: #959595;
+			font-size: 14px;
+		}
+		/* 使用webkit内核的浏览器 */
+		
+		:-moz-placeholder {
+			color: #959595;
+			font-size: 14px;
+		}
+		/* Firefox版本4-18 */
+		
+		::-moz-placeholder {
+			color: #959595;
+			font-size: 14px;
+		}
+		/* Firefox版本19+ */
+		
+		:-ms-input-placeholder {
+			color: #959595;
+			font-size: 14px;
+		}
+	}
+	
+	
+	
+	
+	
+	
+</style>

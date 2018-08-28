@@ -1,0 +1,477 @@
+<template>
+	<div class="home">
+		<header class="header">
+			<div class="my-select">
+				<cube-select
+			  	v-model="gradeVal"
+			  	:options="optionGrade"
+			  	@change='change'>
+				</cube-select>
+			</div>
+			
+			<h1>
+				<img src="/static/images/nav-btn-default-down.png" alt="" />
+			</h1>
+			<em @click="explain1=true">闯关说明</em>
+		</header>
+		<div class="my-content">
+			<div class="no-data" v-show='nodata'>
+				<img src="/static/images/msg-cgym.png"/>
+			</div>
+			<!--my-navbar-->
+			<div class='my-navbar'>
+	    		<cube-tab-bar @change='changeNav' v-model="tabdafault" showSlider>
+				    <cube-tab v-for="(item, index) in tabs" :label="item.label" :key="index">
+				    </cube-tab>
+				</cube-tab-bar>
+			</div>
+			<!--mv-nabar-item-->
+			<div class="mv-nabar-item">
+				<cube-tab-panels  v-model="tabdafault">
+				    <cube-tab-panel   v-for="(item, index) in tabs" :label="item.label" :key="index">
+				     <!-- my-scroll-->
+				     <div class="my-scroll">
+				      	<cube-scroll
+						ref="scroll"
+						:options="ScrollOptions">
+							<ul class="mui-table-view mui-grid-view">
+						        <li v-for="(item,index) in item.heroes" :key="index" class="mui-table-view-cell">
+						            <div class="lf book-cover">
+						            	<img class="imgz" :src="(item.coverUrl.indexOf('?uploadId')?item.coverUrl.split('?uploadId')[0]:item.coverUrl)" alt="" />
+						            </div>
+						            <div class="lf book-content li-absolut">
+						            	<h1 class="book-title ellipsis">{{item.name}}</h1>
+						            	<p class="dati-num">答题机会: <span style="color: #ffb000;">{{item.answersNumber}}</span>/{{item.answersCount}}</p>
+						            	<p>闯关分数: <span v-text='(item.score==null?0:item.score)'></span></p>
+						            </div>
+						            <div class="book-type">
+						            	<div v-if='item.status==1' class="book-type1" @click="begin(item.id)">
+						            		<img src="/static/images/content-cg-btn.png" alt="" />
+						            	</div>
+						            	<div v-if='item.status==2' class="book-type2" @click="tologin">
+						            		<img src="/static/images/content-ytg-btn.png" alt="" />
+						            	</div>
+						            	<div v-if='item.status==null' class="book-type3" @click="begin(item.id)">
+						            		<img src="/static/images/content-cgz-btn.png" alt="" />
+						            	</div>
+						            </div>
+						        </li>
+					        </ul>
+						</cube-scroll>
+				      </div>
+				    </cube-tab-panel>
+				</cube-tab-panels>
+			</div>
+		</div>
+
+
+		<my-alert :objects='object1' v-if='fade'>
+			<!--<div slot='back' class="btn-back" @click="Btnclose">
+				返回
+			</div>-->
+
+			<div slot='clearance' class="btn-back">
+				<span @click="Btnok">再次闯关</span>
+				<span @click="fade=false">返回</span>
+			</div>
+
+		</my-alert>
+
+		<div class="explain-box" v-if='explain1'>
+			<div class="explain-content">
+				<div class="explain-title">
+					<img src="/static/images/pop-default.png" alt="" />
+					<span>闯关说明</span>
+					<img src="/static/images/pop-default.png" alt="" />
+				</div>
+				<div class="explain-bb">
+					<p>
+						1.每本书籍有5次答题机会,使用完后需要跟教师申请重复答题
+					</p>
+					<p>
+						2.答题交卷后减扣一次答题机会数，显示交卷成绩
+					</p>
+					<p>
+						3.每本书籍的提交成绩等于80分以上，才算闯关成功
+					</p>
+					<p>
+						4.只有当所有必读书籍通关完成，才能进入选读闯关
+					</p>
+					<p>
+						5.所有必读选读书籍都通关完成后，可申请跨年级阅读挑战
+					</p>
+				</div>
+				<img @click='explain1 = false' class="explain-close" src="/static/images/pop-icon-close.png" alt="" />
+			</div>
+
+		</div>
+
+	</div>
+</template>
+
+<script>
+
+	import home from '@/network/home/home.js';
+	import common from '@/network/common/common.js';
+	import myAlert from '@/components/my-alert';
+	// import * as homeApi from 'api/home-api'
+	// import { ERR_OK } from 'config/index'
+	export default {
+		data() {
+			return {
+				nodata:false,
+				navOninit:'',
+				optionGrade:[],
+				gradeVal:this.global.session.get('user').gradeId,
+				tabdafault: '必读',
+	     		tabs: [
+				    {
+				        label: '必读',
+				         heroes: []
+				    }, 
+				    {
+				        label: '选读',
+				        heroes:[],
+				    }, 
+			    ],
+
+				explain1: false, //闯关说明
+
+				fade: false,
+				page:1,
+				size:10,
+				list1:[],list2:[],
+				object1: {
+					title: '111标题',
+					content: '',
+					btn1: '再次闯关',
+					btn2: '返回',
+					imgType: 'N',
+
+				}
+			}
+		},
+		created() {
+
+  		},
+		mounted() {
+			this.getList(2);
+			this.gradeOption();
+		},
+		methods: {
+			begin(bookId) {
+				let params = {
+					bookId,
+					gradeId: this.gradeVal,
+					studentId: this.global.session.get('user').id
+				}
+				this.$router.push({ path: '/beginChallenge', query : params});
+			},
+			changeNav(val){
+				if(val=='必读'){
+					this.getList(2)
+				}
+				if(val=='选读'){
+					this.getList(3)
+				}
+			},
+			
+			getList(readType){
+				let params ={
+					current: this.page,
+//					gradeId: this.global.session.get('user').gradeId,
+					name: "",
+					readTypeId: readType,
+					sid: this.global.session.get('user').sid,
+					size: this.size,
+					stuId: this.global.session.get('user').id,
+				};
+				home.homeBooks(params).then(res => {
+					console.log(res);
+					if(res.data.code==0){
+						if(res.data.data.records.length>0){
+							this.nodata=false;
+						}else{
+							this.nodata=true;
+						}
+						if(readType==2){
+							this.tabs[0].heroes=res.data.data.records;
+						}
+						if(readType==3){
+							this.tabs[1].heroes=res.data.data.records;							
+						}
+					}
+					
+          		})
+			},
+			gradeOption(){
+				common.gradeOption().then(res => {
+					console.log('年级',res)
+					for(let item of res.data.data)(
+						this.optionGrade.push({
+							value:item.id,
+							text:item.name
+						})
+					)
+          		})
+			},
+			Btnok() {
+				this.fade = false;
+			},
+			change(val){
+				console.log(val);
+//				this.getList(val);
+			},
+		    tologin () {
+		      this.$router.goBack()
+		    }
+	
+		},
+		components: {
+
+			myAlert
+		},
+		computed: {
+			ScrollOptions() {
+		      	return {
+		      		pullDownRefresh: this.pullDownRefreshObj,
+				    pullUpLoad: this.pullUpLoadObj,
+				    scrollbar: true
+		      	}
+		    },
+		},
+
+	}
+</script>
+
+<style lang="less">
+	.home{
+		.mv-nabar-item{
+				/*height: calc(100% - 160px);*/
+				.cube-tab-panels,.cube-tab-panels-group{
+					height: 100%;
+				}
+		}
+		.my-navbar{
+			.cube-tab-bar-slider{
+				width: 70px !important;
+				background: #0593FF;
+				height: 3px;
+				border-radius: 5px;
+			}
+		}
+		.my-select{
+			.cube-select-icon,.cube-select-placeholder{
+				display: none;
+			}
+			.cube-select::after{
+				border: none;
+			}
+			.cube-select-text{
+				color: #515151;
+				font-weight: bold;
+				font-size: 20px;
+			}
+		}
+	}
+</style>
+
+<style scoped lang="less">
+
+	
+	.home{
+		.my-content{
+			height: 100%;
+			background: #fff;
+			padding-bottom: 0;
+		}
+		.mv-nabar-item{
+			height: 100%;
+		}
+		.my-scroll{
+			height: calc(100% - 1px);
+		}
+		height: 100%;
+		.header{
+			.my-select{
+				width: 60px;
+				.cube-select{
+					width: 100%;
+					padding: 0;
+				}
+				.cube-select-text{
+					color: #515151;
+					font-weight: bold;
+				}
+			}
+			h1{
+				text-align: left;
+				img{
+					width: 20px;
+					vertical-align: middle;
+				}
+			}
+		}
+		.my-navbar{
+			position: fixed;
+			padding-left: 15px;
+			width: 100%;
+			z-index: 99;
+			background: #f5f5f5;
+			.cube-tab-bar{
+				width: 140px;
+				
+			}
+			.cube-tab{
+				/*margin-right: 20px;*/
+			}
+			.cube-tab_active {
+			    color: #0593FF;
+			  
+			}
+		}
+		  /*home 主要页面的样式*/
+		  ul{
+		  	margin-top: 50px;
+		  	padding: 0 15px 15px;
+		  	padding-bottom: 50px;
+		  	>li{
+		  		position: relative;
+		  		overflow: hidden;
+		  		margin-bottom: 15px;
+		  		.book-cover{
+					>img{
+						width: 90px;
+						height: 120px;
+						border-radius: 4px 15px 15px 4px;
+						-webkit-box-shadow: 2px 2px 0px #E3E3E3;
+						box-shadow: 2px 2px 0px #E3E3E3;
+					}
+				}
+				.book-content{
+					left: 115px;
+					.book-title{
+						color: #515151;
+						font-size: 20px;
+						-webkit-line-clamp: 2;
+						width: 140px;
+					}
+					>p{
+						color:#939393;
+						font-size: 16px;
+					}
+					>p.dati-num{
+						margin: 10px 0;
+					}
+				}
+				
+				.book-type{
+					position: absolute;
+					
+					right: 0;
+					top: 50%;
+					-webkit-transform:translateY(-50%) ;
+					-moz-transform:translateY(-50%) ;
+					-ms-transform: translateY(-50%) ;
+					-o-transform: translateY(-50%) ;
+					transform: translateY(-50%) ;
+					img{
+						width: 60px;
+						height: 60px;
+					}
+				}
+		  	}
+		  }
+		
+
+		.header em {
+			color: #939393;
+		}
+		
+				
+		.my-picker-btn {
+			overflow: hidden;
+			background: #F2F2F2;
+			padding: 0 15px;
+			line-height: 40px;
+			>span {
+				float: left;
+				font-size: 14px;
+			}
+			>span.my-picker-btn-sure {
+				float: right;
+				color: #0393FF;
+			}
+		}
+	
+		.picker-item {
+			color: #999 !important;
+		}
+	/*弹窗*/
+	
+	.explain-box {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, .5);
+		z-index: 101;
+		>div.explain-content {
+			border-radius: 10px;
+			width: 250px;
+			background: #fff;
+			position: fixed;
+			top: 50%;
+			left: 50%;
+			-webkit-transform: translate(-50%, -50%);
+			-moz-transform: translate(-50%, -50%);
+			-ms-transform: translate(-50%, -50%);
+			-o-transform: translate(-50%, -50%);
+			transform: translate(-50%, -50%);
+			>img {
+				height: 30px;
+				width: 15px;
+			}
+			>.explain-title {
+				text-align: center;
+				margin: 20px 0;
+				font-size: 16px;
+				color: #0393FF;
+				>span {
+					margin: 0 5px;
+				}
+				>img {
+					width: 12px;
+				}
+			}
+			>.explain-bb {
+				text-align: left;
+				font-size: 14px;
+				color: #838383;
+				width: 190px;
+				margin: 0 auto;
+				>p {
+					margin-bottom: 12px;
+				}
+				>p:last-child {
+					margin-bottom: 22px;
+				}
+			}
+			>img.explain-close {
+				width: 30px;
+				position: absolute;
+				bottom: -45px;
+				left: 50%;
+				-webkit-transform: translateX(-50%);
+				-moz-transform: translateX(-50%);
+				-ms-transform: translateX(-50%);
+				-o-transform: translateX(-50%);
+				transform: translateX(-50%);
+			}
+		}
+	}
+	
+	
+}	
+</style>

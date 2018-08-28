@@ -1,0 +1,145 @@
+<template>
+	<div class="user-shenqing-see">
+		<header class="header">
+			<div @click="back()"><img src="/static/images/nav-forget-icon-goback.png" alt="" /></div>
+			<h1>查看申请</h1>
+		</header>
+		<div class="my-content">
+			<div class="bgg"></div>
+			<ul class="ul-shenqing-see">
+				<li>
+					<i>申请书籍 :</i>
+					<span>{{init.bookName}}</span>
+				</li>
+				<li>
+					<i>申请状态 :</i>
+					<span :class="init.verifyStatus | colorFn">
+						{{init.verifyStatus | statusName}}
+					</span>
+				</li>
+				<li>
+					<i>审核时间 :</i>
+					<span>{{init.verifyTime | ymdHm}}</span>
+				</li>
+
+			</ul>
+			<div class="bgg"></div>
+			<div class="remake-div">
+				<h6>申请原因:</h6>
+				<p>
+					{{init.remark}}
+				</p>
+			</div>
+		</div>
+		
+
+	</div>
+</template>
+
+<script>
+	import my from '@/network/my/my.js';
+	import filters from '@/lib/global.js';
+	export default{
+		data() {
+			return {
+				page:1,
+				size:10,
+				bookId:'',
+				init:[],
+			}
+		},
+		filters:{
+			...filters.dateFilter,
+			statusName(val){
+				if(val==0){
+					return '未处理'
+				}
+				if(val==1){
+					return '申请成功'
+				}
+				if(val==2){
+					return '未通过'
+				}
+			},
+			colorFn(val){
+				if(val==0){
+					return 'status-ing'
+				}
+				if(val==1){
+					return 'status-yes'
+				}
+				if(val==2){
+					return 'status-no'
+				}
+			}
+		},
+		mounted() {
+			this.getInit();
+		},
+		computed:{
+			colorFn(){
+				
+			}
+		},
+		methods: {
+			back() {
+				this.$router.go(-1);
+			},
+			getInit (){
+				let id = this.$route.params.id
+				my.readVerifySee(id).then(res=>{
+					console.log('详情',res);
+					if(res.data.code==0){
+						this.init=res.data.data
+					}
+					
+				})
+			},
+			
+			
+			
+			
+		}
+
+	}
+</script>
+
+<style scoped lang="less">
+	.user-shenqing-see {
+		background: #fff;
+		.ul-shenqing-see{
+			li{
+				overflow: hidden;
+				border-bottom: 1px solid #f4f4f4;
+				padding: 15px;
+				>i{
+					font-size: 15px;
+					color: #9B9B9B;
+				}
+				>span{
+					font-size: 16px;
+				}
+			}
+			li:last-child{
+				border: none;
+			}
+		}
+		.remake-div{
+			padding: 15px;
+			>h6{
+				font-size: 15px;
+				color: #9B9B9B;
+				margin-bottom: 15px;
+			}
+			>p{
+				font-size: 16px;
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+</style>

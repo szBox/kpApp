@@ -1,0 +1,761 @@
+<template>
+	<div class="home">
+		<header class="header">
+			<div class="my-select">
+				<cube-select
+				style='background: #fff;'
+			  	v-model="gradeVal"
+			  	:options="optionGrade"
+			  	@change='change'
+			  	disabled>
+				</cube-select>
+			</div>
+			
+			<h1>
+				<img src="/static/images/nav-btn-default-down.png" alt="" />
+			</h1>
+			<em @click="explain1=true">闯关说明</em>
+		</header>
+		<div class="my-content">
+
+			<!--my-navbar-->
+			<div class='my-navbar'>
+	    		<cube-tab-bar @change='changeNav' v-model="tabdafault" showSlider>
+				    <cube-tab v-for="(item, index) in tabs" :label="item.label" :key="index">
+				    </cube-tab>
+				</cube-tab-bar>
+			</div>
+			<!--mv-nabar-item-->
+			<div class="no-data" v-show='nodata'>
+				<img src="/static/images/msg-cgym.png"/>
+			</div>
+			<div class="mv-nabar-item">
+				<cube-tab-panels  v-model="tabdafault">
+				    <cube-tab-panel   v-for="(item, index) in tabs" :label="item.label" :key="index">
+				     <!-- my-scroll-->
+				     <div class="my-scroll">
+				      	<cube-scroll
+						ref="scroll"
+						:options="ScrollOptions">
+							<ul class="mui-table-view mui-grid-view">
+								
+						        <li v-for="(item,index) in item.heroes" :key="index" class="mui-table-view-cell">
+						            <div class="lf book-cover">
+						            	<img class="imgz" :src="(item.coverUrl.indexOf('?uploadId')?item.coverUrl.split('?uploadId')[0]:item.coverUrl)" alt="" />
+						            </div>
+						            <div class="lf book-content li-absolut">
+						            	<h1 class="book-title ellipsis">{{item.name}}</h1>
+						            	<p class="dati-num">答题机会: <span style="color: #ffb000;">{{item.answersNumber}}</span>/{{item.answersCount}}</p>
+						            	<p>闯关分数: <span v-text='(item.score==null?0:item.score)'></span></p>
+						            </div>
+						            <div class="book-type">
+						            	<!--没有 闯关1-->
+						            	<div v-if='item.status==1' class="book-type1" @click="explain(item)">
+						            		<img v-if='item.type==2 || isMust == 1' src="/static/images/content-cg-btn.png" alt="" />
+						            		<img v-if='item.type==3 && isMust== 0 ' class='item.type' src="/static/images/content-wjd-btn.png" alt="" />
+						            	</div>
+						            	<!--通关2-->
+						            	<div v-if='item.status==2' class="book-type2" @click="confirm2(item)">
+						            		<img src="/static/images/content-ytg-btn.png" alt="" />
+						            	</div>
+						            	<!--通关中  null-->
+						            	<div v-if='item.status==null' class="book-type3" @click="confirm3(item)">
+						            		<img src="/static/images/content-cgz-btn.png" alt="" />
+						            	</div>
+						            </div>
+						        </li>
+					        </ul>
+						</cube-scroll>
+				      </div>
+				    </cube-tab-panel>
+				</cube-tab-panels>
+			</div>
+		</div>
+
+
+		<my-alert :objects='object1' v-if='fade'>
+			<!--<div slot='back' class="btn-back" @click="Btnclose">
+				返回
+			</div>-->
+
+			<div slot='clearance' class="btn-back">
+				<span @click="Btnok">再次闯关</span>
+				<span @click="fade=false">返回</span>
+			</div>
+
+		</my-alert>
+
+		<div class="explain-box" v-if='explain1'>
+			<div class="explain-content">
+				<div class="explain-title">
+					<img src="/static/images/pop-default.png" alt="" />
+					<span>闯关说明</span>
+					<img src="/static/images/pop-default.png" alt="" />
+				</div>
+				<div class="explain-bb" style="height: 260px;">
+					<cube-scroll
+						ref="scrollExplain"
+						:options="ScrollOptions">
+						<p>
+							1.每本书籍有5次答题机会,使用完后需要跟教师申请重复答题
+						</p>
+						<p>
+							2.答题交卷后减扣一次答题机会数，显示交卷成绩
+						</p>
+						<p>
+							3.每本书籍的提交成绩等于80分以上，才算闯关成功
+						</p>
+						<p>
+							4.只有当所有必读书籍通关完成，才能进入选读闯关
+						</p>
+						<p>
+							5.所有必读选读书籍都通关完成后，可申请跨年级阅读挑战
+						</p>
+					</cube-scroll>
+				</div>
+				<img @click='explain1 = false' class="explain-close" src="/static/images/pop-icon-close.png" alt="" />
+			</div>
+
+		</div>
+		
+		<div class="explain-box" v-if='explain2'>
+			<div class="explain-content">
+				<div class="explain-title">
+					<img src="/static/images/pop-default.png" alt="" />
+					<span>阅读说明</span>
+					<img src="/static/images/pop-default.png" alt="" />
+				</div>
+				<div class="explain-bb explain-scroll">
+					<cube-scroll
+						ref="scrollExplain"
+						:options="ScrollOptions">
+						<div>
+							{{explan2_text}}(出题教师:{{explan_techer}})
+						</div>
+					</cube-scroll>	
+				</div>
+				<div class="explain-btn">
+					<button @click="oneBegin(oneDataId)" class="explain-btn1">
+						确定
+					</button>
+					<button @click='explain2 = false'  class="explain-btn2">
+						取消
+					</button>
+				</div>
+			</div>
+
+		</div>
+		
+		
+	</div>
+</template>
+
+<script>
+
+	import home from '@/network/home/home.js';
+	import common from '@/network/common/common.js';
+	import myAlert from '@/components/my-alert';
+	// import * as homeApi from 'api/home-api'
+	// import { ERR_OK } from 'config/index'
+	export default {
+		data() {
+			return {
+				nodata:false,
+				navOninit:'',
+				optionGrade:[],
+				gradeVal:this.global.session.get('user').gradeId,
+				tabdafault: '必读',
+	     		tabs: [
+				    {
+				        label: '必读',
+				         heroes: []
+				    }, 
+				    {
+				        label: '选读',
+				        heroes:[],
+				    }, 
+			    ],
+				
+				explain1: false, //闯关说明
+				explain2:false, //阅读说明
+				fade: false,
+				page:1,
+				size:100,
+				oneDataId:'',  //第一次
+				explan2_text:'', //阅读说明 
+				isMust:'', // 必读是否 读完
+				explan_techer:'',
+				list1:[],list2:[],
+				object1: {
+					title: '111标题',
+					content: '',
+					btn1: '再次闯关',
+					btn2: '返回',
+					imgType: 'N',
+
+				}
+			}
+		},
+		created() {
+			
+  		},
+		mounted() {
+			this.getAuth();
+			this.getList(2);
+			this.gradeOption();
+		},
+		methods: {
+			begin(bookId) {
+				let params = {
+					bookId,
+					gradeId: this.gradeVal,
+					studentId: this.global.session.get('user').id
+				}
+				this.$router.push({ path: '/beginChallenge', query : params});
+			},
+			//没有闯关的  弹出 阅读说明
+			explain(item){
+				console.log(item)
+				if(item.type=='2'){//必读的
+					if(item.answersNumber == 0){
+						this.explain2=true;
+						this.oneDataId=item.id;
+						this.explan2_text=item.remark;
+						this.explan_techer = item.teacherName;
+					}else{
+						this.begin(item.id)
+					}
+				}
+				if(item.type=='3'){//选读的
+					console.log(this.isMust)
+					if(item.answersNumber == 0 && this.isMust==1){
+						this.explain2=true;
+						this.oneDataId=item.id;
+						this.explan2_text=item.remark;
+						this.explan_techer = item.teacherName;
+					}else{
+						this.$createMyConfirm({
+							type: 'confirm',
+							title: '非常遗憾',
+							content: '你的必读书籍暂未全部通关完成,不能解答选读闯关',
+							 styleObj: {
+							 	'background-image': "url('/static/images/pop-bqts-bg.png')"
+							 },
+							cancelBtn: {
+								text: '返回',
+								style: {
+									background: '#0293FE', 
+									color: 'white',
+									border: 'none',
+									float:'left',
+									marginLeft:'20px',
+									marginRight:'20px',
+									width:'85%'
+								
+								}
+							},
+							confirmBtn: {
+								
+								style: {
+									display:'none'
+								}
+							},
+							
+							onCancel: (e)=> {
+		//						this.handIn();
+		//						this.$router.go(-1);
+							}
+						}).show();
+					}
+				}
+				
+				
+			},
+			//第一次 确认 按钮
+			oneBegin(id){
+				console.log(id);
+				this.begin(id)
+			},
+			confirm2(item) {
+				let overNum = item.answersCount - item.answersNumber;
+				let content = '',title='',btnCancel='',btnSure='';
+				console.log('通关',item)
+				if( item.answersNumber >= item.answersCount) {
+					title = '非常抱歉';
+					content = '你的答题机会次数已用完,是否需要重新申请答题的机会?';
+					btnCancel = '返回';
+					btnSure = '答题申请';
+				
+				}else if(item.status=='2'){
+					title = '恭喜你';
+					content = `${item.name},你以${item.score}分的成绩顺利通关啦,当前还剩${overNum}次答题机会还可以再创新高成绩哦!`;
+					btnCancel = '返回';
+					btnSure = '再次闯关';
+				}
+				this.$createMyConfirm({
+					type: 'confirm',
+					title: `${title}`,
+					content: `${content}`,
+					 styleObj: {
+					 	'background-image': "url('/static/images/pop-bqts-bg.png')"
+					 },
+					cancelBtn: {
+						text: `${btnCancel}`,
+						style: {
+							background: '#F4F4F4', 
+							color: '#525252',
+							border:'1px solid #C5C5C5',
+							float:'right',
+							marginRight:'30px'
+						
+						}
+					},
+					confirmBtn: {
+						
+						text: `${btnSure}`,
+						style: {
+							background: '#0293FE', 
+							color: 'white',
+							border: 'none',
+							float:'left',
+							marginLeft:'30px'
+						}
+					},
+					onSure: ()=> {
+						// this.handIn();
+						console.log(item,'yyyyyy')
+						if(item.answersNumber >= item.answersCount){
+							this.$router.push({
+								path:'/home-shenqing',
+								query:{
+									id:item.id,
+									name:item.name
+								}
+							})
+						}else{
+							this.begin(item.id)
+						}	
+					},
+					onCancel: (e)=> {
+//						this.handIn();
+//						this.$router.go(-1);
+					}
+				}).show();
+			},
+			
+			confirm3(item){
+				let content = '',title='',btnCancel='',btnSure='';
+				if( item.answersNumber >= item.answersCount) {
+					title = '非常抱歉';
+					content = '你的答题机会次数已用完,是否需要重新申请答题的机会?';
+					btnCancel = '返回';
+					btnSure = '答题申请';
+					this.$createMyConfirm({
+					type: 'confirm',
+					title: `${title}`,
+					content: `${content}`,
+					 styleObj: {
+					 	'background-image': "url('/static/images/pop-bqts-bg.png')"
+					 },
+					cancelBtn: {
+						text: `${btnCancel}`,
+						style: {
+							background: '#F4F4F4', 
+							color: '#525252',
+							border:'1px solid #C5C5C5',
+							float:'right',
+							marginRight:'30px'
+						
+						}
+					},
+					confirmBtn: {
+						
+						text: `${btnSure}`,
+						style: {
+							background: '#0293FE', 
+							color: 'white',
+							border: 'none',
+							float:'left',
+							marginLeft:'30px'
+						}
+					},
+					onSure: ()=> {
+						this.$router.push({
+							path:'/home-shenqing',
+							query:{
+								id:item.id,
+								name:item.name
+							}
+						})
+					},
+					onCancel: (e)=> {
+//						this.handIn();
+//						this.$router.go(-1);
+					}
+				}).show();
+					
+				}else{
+					this.begin(item.id)
+				}
+			},
+			changeNav(val){
+				if(val=='必读'){
+					this.getList(2)
+				}
+				if(val=='选读'){
+					this.getList(3)
+				}
+			},
+			
+			getList(readType){
+				let params ={
+					current: this.page,
+					gradeId: this.global.session.get('user').gradeId,
+					name: "",
+					readTypeId: readType,
+					sid: this.global.session.get('user').sid,
+					size: this.size,
+					stuId: this.global.session.get('user').id,
+				};
+				home.homeBooks(params).then(res => {
+					console.log(res);
+					if(res.data.code==0){
+						if(res.data.data.records.length>0){
+							this.nodata=false;
+						}else{
+							this.nodata=true;
+						}
+						if(readType==2){
+							for(var i=0; i<res.data.data.records.length; i++){
+								this.$set(res.data.data.records[i], 'type', '2');
+							}
+							this.tabs[0].heroes=res.data.data.records;
+						}
+						if(readType==3){
+							for(var i=0; i<res.data.data.records.length; i++){
+								this.$set(res.data.data.records[i], 'type', '3');
+							}
+							this.tabs[1].heroes=res.data.data.records;		
+						
+						}
+					}
+					
+          		})
+			},
+			getAuth(){
+				let gradeId = {
+					gradeId:this.global.session.get('user').gradeId
+				} 
+				home.isMust(gradeId).then(res => {
+					console.log('判断',res)
+					if(res.data.code==0){
+						this.isMust = res.data.data;
+					}
+          		})
+			},
+			gradeOption(){
+				common.gradeOption().then(res => {
+					console.log('年级',res)
+					for(let item of res.data.data)(
+						this.optionGrade.push({
+							value:item.id,
+							text:item.name
+						})
+					)
+          		})
+			},
+			Btnok() {
+				this.fade = false;
+			},
+			change(val){
+				console.log(val);
+//				this.getList(val);
+			},
+		    tologin () {
+		      this.$router.goBack()
+		    }
+	
+		},
+		components: {
+
+			myAlert
+		},
+		computed: {
+			ScrollOptions() {
+		      	return {
+		      		pullDownRefresh: this.pullDownRefreshObj,
+				    pullUpLoad: this.pullUpLoadObj,
+				    scrollbar: true
+		      	}
+		    },
+		},
+
+	}
+</script>
+
+<style lang="less">
+	.home{
+		.mv-nabar-item{
+				/*height: calc(100% - 160px);*/
+				.cube-tab-panels,.cube-tab-panels-group{
+					height: 100%;
+				}
+		}
+		.my-navbar{
+			.cube-tab-bar-slider{
+				width: 70px !important;
+				background: #0593FF;
+				height: 3px;
+				border-radius: 5px;
+			}
+		}
+		.my-select{
+			.cube-select-icon,.cube-select-placeholder{
+				display: none;
+			}
+			.cube-select::after{
+				border: none;
+			}
+			.cube-select-text{
+				color: #515151;
+				font-weight: bold;
+				font-size: 22px;
+			}
+		}
+	}
+</style>
+
+<style scoped lang="less">
+
+	
+	.home{
+		.my-content{
+			height: 100%;
+			background: #fff;
+			padding-bottom: 0;
+			
+		}
+		.mv-nabar-item{
+			height: 100%;
+		}
+		.my-scroll{
+			height: calc(100% - 1px);
+		}
+		height: 100%;
+		.header{
+			.my-select{
+				width: 70px;
+				.cube-select{
+					width: 100%;
+					padding: 0;
+				}
+				
+			}
+			h1{
+				text-align: left;
+				img{
+					width: 20px;
+					vertical-align: middle;
+				}
+			}
+		}
+		.my-navbar{
+			position: fixed;
+			padding-left: 15px;
+			width: 100%;
+			z-index: 99;
+			background: #f5f5f5;
+			.cube-tab-bar{
+				width: 140px;
+				
+			}
+			.cube-tab{
+				/*margin-right: 20px;*/
+			}
+			.cube-tab_active {
+			    color: #0593FF;
+			  
+			}
+		}
+		  /*home 主要页面的样式*/
+		  ul{
+		  	margin-top: 50px;
+		  	padding: 10px 15px 15px;
+		  	padding-bottom: 50px;
+		  	>li{
+		  		position: relative;
+		  		overflow: hidden;
+		  		margin-bottom: 15px;
+		  		.book-cover{
+					>img{
+						/*width: 90px;
+						height: 120px;*/
+						width:95px;
+						
+						height: 120px;
+						border-radius: 4px 15px 15px 4px;
+						-webkit-box-shadow: 3px 3px 12px #d2d2d2;
+						box-shadow: 3px 3px 12px #d2d2d2;
+					}
+				}
+				.book-content{
+					left: 115px;
+					.book-title{
+						color: #515151;
+						font-size: 18px;
+						font-weight: bold;
+						line-height: 20px;
+						-webkit-line-clamp: 2;
+						width: 140px;
+					}
+					>p{
+						color:#939393;
+						font-size: 15px;
+					}
+					>p.dati-num{
+						margin: 10px 0;
+					}
+				}
+				
+				.book-type{
+					position: absolute;
+					
+					right: 0;
+					top: 50%;
+					-webkit-transform:translateY(-50%) ;
+					-moz-transform:translateY(-50%) ;
+					-ms-transform: translateY(-50%) ;
+					-o-transform: translateY(-50%) ;
+					transform: translateY(-50%) ;
+					img{
+						width: 60px;
+						height: 60px;
+					}
+				}
+		  	}
+		  }
+		
+
+		.header em {
+			color: #939393;
+		}
+		
+				
+		.my-picker-btn {
+			overflow: hidden;
+			background: #F2F2F2;
+			padding: 0 15px;
+			line-height: 40px;
+			>span {
+				float: left;
+				font-size: 14px;
+			}
+			>span.my-picker-btn-sure {
+				float: right;
+				color: #0393FF;
+			}
+		}
+	
+		.picker-item {
+			color: #999 !important;
+		}
+	/*弹窗*/
+	
+	.explain-box {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, .5);
+		z-index: 101;
+		>div.explain-content {
+			border-radius: 10px;
+			width: 280px;
+			background: #fff;
+			position: fixed;
+			top: 50%;
+			left: 50%;
+			-webkit-transform: translate(-50%, -50%);
+			-moz-transform: translate(-50%, -50%);
+			-ms-transform: translate(-50%, -50%);
+			-o-transform: translate(-50%, -50%);
+			transform: translate(-50%, -50%);
+			>img {
+				height: 30px;
+				width: 15px;
+			}
+			>.explain-title {
+				text-align: center;
+				margin: 20px 0;
+				font-size: 16px;
+				color: #0393FF;
+				>span {
+					margin: 0 5px;
+				}
+				>img {
+					width: 12px;
+				}
+			}
+			>.explain-bb {
+				/*padding: 15px 0;*/
+				text-align: left;
+				font-size: 14px;
+				line-height: 20px;
+				color: #838383;
+				width: 200px;
+				margin: 20px auto;
+				p {
+					margin-bottom: 12px;
+				}
+				p:last-child {
+					margin-bottom: 22px;
+				}
+			}
+			>.explain-scroll{
+				height: 200px;
+			}
+			>.explain-btn{
+				button{
+					font-size: 14px;
+					border: none;
+					width: 100px;
+	                background: none;
+	                margin: 10px;
+	                font-size: 16px;
+	                border-radius: 5px;
+	                padding: 8px;
+				}
+				button.explain-btn1{
+					background: #0393FF;
+					color: #fff;
+					float: left;
+					margin-left: 20px;
+					margin-right: 0;
+				}
+				button.explain-btn2{
+					background: #f4f4f4;
+					color: #515151;
+					float: right;
+					margin-right: 20px;
+					margin-left: 0;
+					border:1px solid #C5C5C5,
+				}
+			}
+			>img.explain-close {
+				width: 30px;
+				position: absolute;
+				bottom: -45px;
+				left: 50%;
+				-webkit-transform: translateX(-50%);
+				-moz-transform: translateX(-50%);
+				-ms-transform: translateX(-50%);
+				-o-transform: translateX(-50%);
+				transform: translateX(-50%);
+			}
+		}
+	}
+	
+	
+}	
+</style>

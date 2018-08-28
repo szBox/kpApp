@@ -1,0 +1,408 @@
+<template>
+    <div class="begin-challenge">
+			<div class="self-mask" :class="{active: isShow}" @click="isShow = false"></div>
+			<header class="header">
+				<div @click="goback"><img src="/static/images/nav-icon-goback.png" alt="" /></div>
+				<h1>倒计时{{tick}}</h1>
+			</header>
+			<div class="content">
+				<cube-scroll ref="scroll" :options="options" class="my-cube-scroll">
+					<cube-slide @change="slideChange" :initial-index="initIndex" :options="slideOptions" :autoPlay="false" :showDots="false" ref="slide" :data="currentGroup" class="my-cube-slide">
+						<cube-slide-item v-for="(item, index) in currentGroup" :key="index">
+							<div class="question">
+								<h1>{{(index+1 < 10 ? '0' + (index+1) : index+1)}}.<span class="type">（{{item.anstname}}）</span>{{item.name}}<span class="score">（{{item.questionsRandId}}分）</span></h1>
+								
+								<div class="paper-cover" v-if="item.imageUrl">
+									<img :src="(item.imageUrl.indexOf('?uploadId')?item.imageUrl.split('?uploadId')[0]:item.imageUrl)" alt="" />
+								</div>
+								<ul class="answer-ul">
+									<li class="answer-li" :class="{correct: perChoose[index] && perChoose[index].answer.indexOf(answer.id) != -1}" @click.self="choose(item, answer, index)" v-for="(answer, answerIndex) in item.qclist" :key="answer.id">
+										{{answerIndex+1 | optionFilter}}：{{answer.value}}
+									</li>
+								</ul>
+							</div>
+						</cube-slide-item>
+					</cube-slide>
+				</cube-scroll>
+			</div>
+			<div class="foot" :class="{active: isShow}">
+				<div class="foot-header">
+					<div class="left">
+						<img src="/static/images/tab-icon-jj.png" alt="" @click="confirm">
+						<span>交卷</span>
+					</div>
+					<div class="center">
+						总分：{{data.score}}分
+					</div>
+					<div class="right">
+						<span>{{currentIndex < 10 ? '0' + currentIndex : currentIndex}}</span><span style="color: #ECD5B5;">/{{currentGroup.length}}</span>
+						<img src="/static/images/tab-icon-ym.png" alt="" @click="showAll">
+					</div>
+				</div>
+				<div style="height: 250px;">
+					<cube-scroll ref="scrolls" :options="options">
+						<div class="foot-content">
+							<span @click="scrollTo(i)" v-for="i of currentGroup.length" :key="i" :class="{current: currentIndex == i, done: perChoose[i-1] && perChoose[i-1].answer.length > 0}">
+								{{i}}
+							</span>
+						</div>
+					</cube-scroll>
+				</div>
+			</div>
+    </div>
+</template>
+<script>
+import home from '@/network/home/home.js';
+export default {
+    data() {
+			return {
+				slideOptions: {
+					stopPropagation: true
+				},
+				options: {
+					scrollbar: true
+				},
+				currentGroup: [],//试卷题目数据
+				data: {},//整套试卷的数据
+				timer: null,//计时器
+				tick: '00:00:00',//倒计时
+				currentIndex: 1,//当前第几页
+				isShow: false,//是否打开选题
+				initIndex: 1, //slide初始第几页
+				perChoose: {}//每道题选中的答案对象
+			}
+		},
+		methods: {
+			goback() {
+				this.$createMyConfirm({
+					type: 'confirm',
+					title: '答题次数不多了',
+					content: '正在闯关答题中，退出相当于交卷，确定要退出吗？',
+					// styleObj: {
+					// 	'background-image': "url('/static/images/pop-bg-moren.png')"
+					// },
+					confirmBtn: {
+						text: '取消'
+					},
+					cancelBtn: {
+						text: '确定'
+					},
+					onSure: (e)=> {
+						// this.handIn();
+					},
+					onCancel: (e)=> {
+						this.handIn();
+					}
+				}).show();
+			},
+			confirm() {
+				let answerList = [];
+				Object.keys(this.perChoose).forEach(index => {
+					if(this.perChoose[index].answer.length > 0) {
+						let obj = {
+							...this.perChoose[index],
+							answer: this.perChoose[index].answer.join(','),
+							choiceOrder: this.global.getIdStringByArr(this.perChoose[index].choiceOrder)
+						}
+						answerList.push(obj);
+					}
+				});
+				let lastNum = this.currentGroup.length - answerList.length;
+				let content = '';
+				if(lastNum == 0) {
+					content = '已经答完所有题目,是否需要检查';
+				}else{
+					content = `你还有${lastNum}道题未作答，是否放弃答题`;
+				}
+				this.$createMyConfirm({
+					type: 'confirm',
+					title: '确认交卷？',
+					content: content,
+					confirmBtn: {
+						text: '继续答题',
+						style: {background: '#FFB001', color: 'white',border: 'none'}
+					},
+					cancelBtn: {
+						text: '现在交卷'
+					},
+					onSure: (e)=> {
+						// this.handIn();
+					},
+					onCancel: (e)=> {
+						this.handIn();
+					}
+				}).show();
+			},
+			handIn() {
+				let answerList = [];
+				Object.keys(this.perChoose).forEach(index => {
+					if(this.perChoose[index].answer.length > 0) {
+						let obj = {
+							...this.perChoose[index],
+							answer: this.perChoose[index].answer.join(','),
+							choiceOrder: this.global.getIdStringByArr(this.perChoose[index].choiceOrder)
+						}
+						answerList.push(obj);
+					}
+				});
+				let params = {
+					answerList,
+					answerTime: this.data.answerTime,
+					bookId: this.$route.query.bookId,
+					gradeId: this.$route.query.gradeId,
+					remainingTime: this.tick,
+					stuId: this.$route.query.studentId,
+					tpId: this.data.id
+				}
+				home.handIn(params).then(res => {
+					if(res.data.code == 0) {
+						let data = res.data.data || {};
+						this.$router.push({ path: '/home-score', query: data});
+					}else{
+						this.$createToast({
+							time: 1000,
+							txt: res.data.message,
+							type:'error'
+						}).show();
+					}
+				});
+			},
+			scrollTo(index) {
+				this.currentIndex = index;
+				this.$refs.slide.slide.goToPage(index-1);
+				this.isShow = false;
+			},
+			showAll() {
+				this.isShow = !this.isShow;
+			},
+
+			slideChange(index) {
+				this.currentIndex = index + 1;
+			},
+			choose(item, answer, index) {
+				if(this.perChoose[index]) {
+					let answers = this.perChoose[index].answer;
+					let answerIndex = this.perChoose[index].answer.indexOf(answer.id);
+					if(answerIndex == -1) {
+						this.perChoose[index].answer.push(answer.id);
+					}else{
+						answers.splice(answerIndex, 1);
+						this.perChoose[index].answer = answers;
+					}
+				}else{
+					let params = {
+						answer: [answer.id],
+						choiceOrder: item.qclist,
+						questionsId: item.id,
+						qyId: item.qyId
+					};
+					this.$set(this.perChoose, index, params);
+				}
+			},
+			init() {
+				let query = this.$route.query;
+				home.beginChallenge(query).then(res => {
+					this.data = res.data.data || {};
+					this.currentGroup = this.data.questionsList;
+					let time = (new Date()).getTime() + (this.data.answerTime * 60 * 1000);
+					this.timer = setInterval(() => {
+                        this.timeCountDown(time);
+					}, 1000);
+				})
+			},
+			//倒计时
+			timeCountDown(time) {
+				let [str, bool] = this.global.timerCountDown(time);
+				this.tick = str;
+				if(bool) {
+					clearInterval(this.timer);
+					this.handIn();
+				}
+			}
+		},
+		created() {
+			this.init();
+		},
+		destroyed() {
+			clearInterval(this.timer);
+		},
+		filters:{
+			optionFilter(val){
+				if(val==1){
+					return 'A'
+				}
+				if(val==2){
+					return 'B'
+				}
+				if(val==3){
+					return 'C'
+				}
+				if(val==4){
+					return 'D'
+				}
+				if(val==5){
+					return 'E'
+				}
+			}
+		}
+}
+</script>
+<style lang="less" scoped>
+    .begin-challenge{
+		font-size: 16px;
+		height: 100%;
+		.self-mask{
+			&.active{
+				z-index: 112;
+				opacity: .4;
+			}
+			transition: opacity 1s;
+			position: fixed;
+			top: 0;
+			left: 0;
+			height: 100%;
+			width: 100%;
+			z-index: -100;
+			background: black;
+			opacity: 0;
+		}
+		&::before{
+			content: ' ';
+			position: fixed;
+			z-index: -1;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			background: url(/static/images/bgg1.jpg);
+			background-size: cover;
+		}
+		.header{
+			z-index: 111;
+			background: transparent;
+			h1{
+				color: #996809;
+			}
+		}
+		.content{
+			height: 100%;
+			padding: 50px 0;
+			.question{
+				text-align: left;
+				padding: 15px 25px;
+				margin: 10px;
+				border: 2px solid #E7C78F;
+				border-radius: 10px;
+				h1{
+					margin-bottom: 15px;
+					line-height: 1.3;
+					white-space: normal;
+					color: #BA7c01;
+					.type{
+						color: rgb(88, 181, 249);
+					}
+					.score{
+						color: rgb(255, 125, 103);
+					}
+				}
+				.paper-cover{
+					img{
+						width: 100%;
+						// max-width: 100%;
+						display: block;
+						height: auto;
+					}
+				}
+				.answer-li{
+					line-height: 1.3;
+					white-space: normal;
+					margin: 8px 0;
+					margin-bottom: 20px;
+					padding:10px 15px;
+					background: url(/static/images/content-choice-box-wxz.png) no-repeat;
+					background-size: 100% 100%;
+					color: #FEA504;
+					&.correct{
+						background: url(/static/images/content-choice-box-cwda.png) no-repeat;
+						background-size: 100% 100%;
+						color: white;
+					}
+				}
+			}
+		}
+		.foot{
+			&.active{
+				height: 300px;
+				z-index: 600;
+				.foot-header{
+					border-bottom: 1px solid #EBECEE;
+				}
+			}
+			transition: height 1s ease;
+			width: 100%;
+			background: white;
+			z-index: 2;
+			height: 50px;
+			position: fixed;
+			bottom: 0;
+			overflow: hidden;
+			.foot-header{
+				width: 100%;
+				display: flex;
+				height: 50px;
+				>div{
+					align-self: center;
+					text-align: center;
+				}
+				.left, .right{
+					flex: 1;
+					img, .span{
+						display: inline-block;
+						vertical-align: middle;
+					}
+					span{
+						color: #9D6500;
+					}
+					img{
+						width: 36px;
+					}
+				}
+				.center{
+					font-size: 20px;
+					color: #9D6500;
+					flex: 2
+				}
+			}
+			.foot-content{
+				display: flex;
+				flex-wrap: wrap;
+				span{
+					&.done{
+						color: white;
+						background-image: url('/static/images/pop-btn-selected-yman.png');
+					}
+					&.current{
+						color: white;
+						background-image: url('/static/images/pop-btn-selected-ctan.png') !important;
+					}
+					cursor: pointer;
+					color: #40ADFF;
+					background: url('/static/images/pop-btn-default-yman.png') no-repeat;
+					background-size: 64%;
+					background-position: 50%;
+					width: calc(100% / 6);
+					text-align: center;
+					height: 40px;
+					line-height: 40px;
+					margin: 10px 0;
+					font-weight: 700;
+					img{
+						width: 40px;
+					}
+				}
+			}
+		}
+    }
+</style>
+
+
